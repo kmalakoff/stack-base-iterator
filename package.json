@@ -1,7 +1,7 @@
 {
   "name": "stack-base-iterator",
-  "version": "0.1.9",
-  "description": "Base iterator for using a stack of async functions of entries",
+  "version": "0.1.0",
+  "description": "Base iterator for values retrieved using a stack of async functions returning values",
   "keywords": [
     "stack",
     "base",
@@ -28,7 +28,7 @@
     "fifo": "^2.3.0",
     "inherits": "^2.0.4",
     "maximize-iterator": "^2.6.4",
-    "next-tick": "^1.1.0"
+    "once": "^1.4.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",

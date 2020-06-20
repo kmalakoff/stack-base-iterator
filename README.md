@@ -1,6 +1,6 @@
 ## stack-base-iterator
 
-Base iterator for extract iterators like tar-iterator and zip-iterator.
+Base iterator for values retrieved using a stack of async functions returning values.
 
 // asyncIterator
 
