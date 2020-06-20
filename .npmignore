@@ -1,0 +1,11 @@
+.vscode/
+.tmp/
+performance/
+test/
+.depcheckrc
+.eslintignore
+.eslintrc.js
+.prettierignore
+.prettierrc
+.travis.yml
+README.md
