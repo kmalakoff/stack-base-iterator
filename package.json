@@ -1,6 +1,6 @@
 {
   "name": "stack-base-iterator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Base iterator for values retrieved using a stack of async functions returning values",
   "keywords": [
     "stack",
@@ -28,6 +28,7 @@
     "fifo": "^2.3.0",
     "inherits": "^2.0.4",
     "maximize-iterator": "^2.6.4",
+    "object-assign": "^4.1.1",
     "once": "^1.4.0"
   },
   "devDependencies": {
