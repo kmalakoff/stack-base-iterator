@@ -1,6 +1,6 @@
 {
   "name": "stack-base-iterator",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Base iterator for values retrieved using a stack of async functions returning values",
   "keywords": [
     "stack",
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "async-compat": "^1.4.6",
-    "fifo": "^2.3.0",
+    "fifo": "^2.4.1",
     "inherits": "^2.0.4",
     "maximize-iterator": "^2.6.5",
     "object-assign": "^4.1.1",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "babel-eslint": "^10.1.0",
-    "depcheck": "^1.0.0",
+    "depcheck": "^1.4.2",
     "dis-dat": "^0.1.3",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.11.0",
@@ -43,7 +43,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
     "mocha-compat": "^3.5.5",
-    "prettier": "^2.0.5"
+    "prettier": "^2.3.2"
   },
   "engines": {
     "node": ">=0.8"
