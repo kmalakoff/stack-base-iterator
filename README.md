@@ -78,7 +78,6 @@ var iterator = new YourIterator();
 
 ```js
 var assert = require('assert');
-var Queue = require('queue-cb');
 var BaseIterator = require('stack-base-iterator'));
 
 // extend BaseIterator (see tests, tar-iterator, zip-iterator for examples)
