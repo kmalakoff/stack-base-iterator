@@ -1,4 +1,4 @@
-var processOrQueue = require('./processOrQueue');
+import processOrQueue from './processOrQueue.mjs';
 
 function canProcess(iterator) {
   if (iterator.done || !iterator.stack.length) return false;
@@ -9,8 +9,8 @@ function canProcess(iterator) {
   return iterator.queued.length;
 }
 
-module.exports = function drainStack(iterator) {
+export default function drainStack(iterator) {
   while (canProcess(iterator)) {
     processOrQueue(iterator, iterator.queued.pop());
   }
-};
+}
