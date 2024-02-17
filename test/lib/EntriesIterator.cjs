@@ -1,9 +1,9 @@
-var inherits = require('inherits');
-var BaseIterator = require('../..');
+const inherits = require('inherits');
+const BaseIterator = require('stack-base-iterator');
 
-function EntryIterator(entries, options) {
+function EntriesIterator(entries, options) {
   BaseIterator.call(this, options);
-  var self = this;
+  const self = this;
   self.entries = entries.slice();
 
   function next(iterator, callback) {
@@ -15,6 +15,6 @@ function EntryIterator(entries, options) {
   }
   self.push(next);
 }
-inherits(EntryIterator, BaseIterator);
+inherits(EntriesIterator, BaseIterator);
 
-module.exports = EntryIterator;
+module.exports = EntriesIterator;
