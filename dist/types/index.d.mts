@@ -1,6 +1,6 @@
 export default class StackBaseIterator {
-    constructor(options: any);
-    options: object;
+    constructor(options?: {});
+    options: {};
     queued: FIFO<any>;
     processors: FIFO<any>;
     stack: FIFO<any>;

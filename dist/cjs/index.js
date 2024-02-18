@@ -9,7 +9,6 @@ Object.defineProperty(exports, "default", {
     }
 });
 var _fifo = /*#__PURE__*/ _interop_require_default(require("fifo"));
-var _justextend = /*#__PURE__*/ _interop_require_default(require("just-extend"));
 var _once = /*#__PURE__*/ _interop_require_default(require("once"));
 var _createProcessor = /*#__PURE__*/ _interop_require_default(require("./createProcessor.js"));
 var _drainStack = /*#__PURE__*/ _interop_require_default(require("./drainStack.js"));
@@ -34,17 +33,45 @@ function _create_class(Constructor, protoProps, staticProps) {
     if (staticProps) _defineProperties(Constructor, staticProps);
     return Constructor;
 }
+function _define_property(obj, key, value) {
+    if (key in obj) {
+        Object.defineProperty(obj, key, {
+            value: value,
+            enumerable: true,
+            configurable: true,
+            writable: true
+        });
+    } else {
+        obj[key] = value;
+    }
+    return obj;
+}
 function _interop_require_default(obj) {
     return obj && obj.__esModule ? obj : {
         default: obj
     };
 }
+function _object_spread(target) {
+    for(var i = 1; i < arguments.length; i++){
+        var source = arguments[i] != null ? arguments[i] : {};
+        var ownKeys = Object.keys(source);
+        if (typeof Object.getOwnPropertySymbols === "function") {
+            ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function(sym) {
+                return Object.getOwnPropertyDescriptor(source, sym).enumerable;
+            }));
+        }
+        ownKeys.forEach(function(key) {
+            _define_property(target, key, source[key]);
+        });
+    }
+    return target;
+}
 var StackBaseIterator = /*#__PURE__*/ function() {
     "use strict";
-    function StackBaseIterator(options) {
+    function StackBaseIterator() {
+        var options = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
         _class_call_check(this, StackBaseIterator);
-        options = options || {};
-        this.options = (0, _justextend.default)({}, options);
+        this.options = _object_spread({}, options);
         this.options.error = options.error || function defaultError(err) {
             return !!err; // fail on errors
         };

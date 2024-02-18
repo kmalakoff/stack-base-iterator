@@ -1,5 +1,4 @@
 import FIFO from 'fifo';
-import assign from 'just-extend';
 import once from 'once';
 
 import createProcesor from './createProcessor.mjs';
@@ -8,9 +7,8 @@ import fifoRemove from './fifoRemove.mjs';
 import processOrQueue from './processOrQueue.mjs';
 
 export default class StackBaseIterator {
-  constructor(options) {
-    options = options || {};
-    this.options = assign({}, options);
+  constructor(options = {}) {
+    this.options = { ...options };
     this.options.error =
       options.error ||
       function defaultError(err) {

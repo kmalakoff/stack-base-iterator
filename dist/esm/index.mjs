@@ -1,5 +1,4 @@
 import FIFO from 'fifo';
-import assign from 'just-extend';
 import once from 'once';
 import createProcesor from './createProcessor.mjs';
 import drainStack from './drainStack.mjs';
@@ -75,9 +74,10 @@ let StackBaseIterator = class StackBaseIterator {
             });
         });
     }
-    constructor(options){
-        options = options || {};
-        this.options = assign({}, options);
+    constructor(options = {}){
+        this.options = {
+            ...options
+        };
         this.options.error = options.error || function defaultError(err) {
             return !!err; // fail on errors
         };

@@ -1,10 +1,8 @@
 import assert from 'assert';
 import EntriesIterator from '../lib/EntriesIterator.cjs';
 
-const HAS_ASYNC_ITERATOR = typeof Symbol !== 'undefined' && Symbol.asyncIterator;
-
 describe('asyncIterator', () => {
-  if (!HAS_ASYNC_ITERATOR) return;
+  if (typeof Symbol === 'undefined' || !Symbol.asyncIterator) return;
 
   describe('happy path', () => {
     it('concurrency 1', async () => {
