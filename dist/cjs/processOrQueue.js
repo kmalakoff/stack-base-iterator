@@ -2,6 +2,12 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+Object.defineProperty(exports, "default", {
+    enumerable: true,
+    get: function() {
+        return processOrQueue;
+    }
+});
 var _asynccompat = /*#__PURE__*/ _interop_require_default(require("async-compat"));
 var _fifoRemove = /*#__PURE__*/ _interop_require_default(require("./fifoRemove.js"));
 function _interop_require_default(obj) {
@@ -9,7 +15,7 @@ function _interop_require_default(obj) {
         default: obj
     };
 }
-module.exports = function processOrQueue(iterator, callback) {
+function processOrQueue(iterator, callback) {
     if (iterator.done) return callback(null, null);
     // nothing to process so queue
     if (!iterator.stack.length) return iterator.queued.unshift(callback);
@@ -25,7 +31,7 @@ module.exports = function processOrQueue(iterator, callback) {
         !done && !err && !result ? processOrQueue(iterator, callback) : callback(err, result || null);
         if (done && !iterator.done) iterator.end(); // end
     });
-};
+}
 
 if ((typeof exports.default === 'function' || (typeof exports.default === 'object' && exports.default !== null)) && typeof exports.default.__esModule === 'undefined') {
   Object.defineProperty(exports.default, '__esModule', { value: true });
