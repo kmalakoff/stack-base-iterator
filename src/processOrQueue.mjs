@@ -2,7 +2,7 @@ import compat from 'async-compat';
 
 import fifoRemove from './fifoRemove.mjs';
 
-module.exports = function processOrQueue(iterator, callback) {
+export default function processOrQueue(iterator, callback) {
   if (iterator.done) return callback(null, null);
 
   // nothing to process so queue
@@ -21,4 +21,4 @@ module.exports = function processOrQueue(iterator, callback) {
     !done && !err && !result ? processOrQueue(iterator, callback) : callback(err, result || null);
     if (done && !iterator.done) iterator.end(); // end
   });
-};
+}
