@@ -34,23 +34,24 @@
   "scripts": {
     "build": "tsds build",
     "deploy": "tsds deploy",
-    "format": "biome check --apply-unsafe src/ test/",
+    "format": "biome check --write --unsafe src/ test/",
     "test": "tsds test:node --timeout=10000",
     "test:engines": "nvu engines npm test",
     "version": "tsds version"
   },
   "dependencies": {
+    "asap": "^2.0.6",
     "async-compat": "^1.4.7",
     "fifo": "^2.4.1",
     "once": "^1.4.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.5.3",
-    "@types/mocha": "^10.0.6",
-    "@types/node": "^20.11.19",
+    "@biomejs/biome": "^1.9.4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.9.1",
     "depcheck": "^1.4.7",
     "inherits": "^2.0.4",
-    "ts-dev-stack": "^0.14.1"
+    "ts-dev-stack": "^0.15.8"
   },
   "engines": {
     "node": ">=0.8"
