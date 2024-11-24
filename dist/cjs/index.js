@@ -86,7 +86,7 @@ var StackBaseIterator = /*#__PURE__*/ function() {
         {
             key: "destroy",
             value: function destroy(err) {
-                if (this.destroyed) throw new Error("Already destroyed");
+                if (this.destroyed) throw new Error('Already destroyed');
                 this.destroyed = true;
                 this.end(err);
             }
@@ -94,7 +94,7 @@ var StackBaseIterator = /*#__PURE__*/ function() {
         {
             key: "push",
             value: function push(item) {
-                if (this.done) return console.log("Attempting to push on a done iterator");
+                if (this.done) return console.log('Attempting to push on a done iterator');
                 this.stack.push(item);
                 (0, _drainStack.default)(this);
             }
@@ -113,7 +113,7 @@ var StackBaseIterator = /*#__PURE__*/ function() {
         {
             key: "next",
             value: function next(callback) {
-                if (typeof callback === "function") return (0, _processOrQueue.default)(this, (0, _once.default)(callback));
+                if (typeof callback === 'function') return (0, _processOrQueue.default)(this, (0, _once.default)(callback));
                 var self = this;
                 return new Promise(function nextPromise(resolve, reject) {
                     self.next(function nextCallback(err, result) {
@@ -126,12 +126,12 @@ var StackBaseIterator = /*#__PURE__*/ function() {
             key: "forEach",
             value: function forEach(fn, options, callback) {
                 var self = this;
-                if (typeof fn !== "function") throw new Error("Missing each function");
-                if (typeof options === "function") {
+                if (typeof fn !== 'function') throw new Error('Missing each function');
+                if (typeof options === 'function') {
                     callback = options;
                     options = {};
                 }
-                if (typeof callback === "function") {
+                if (typeof callback === 'function') {
                     if (this.done) return callback(null, true);
                     options = options || {};
                     options = {
@@ -170,7 +170,7 @@ var StackBaseIterator = /*#__PURE__*/ function() {
     ]);
     return StackBaseIterator;
 }();
-if (typeof Symbol !== "undefined" && Symbol.asyncIterator) {
+if (typeof Symbol !== 'undefined' && Symbol.asyncIterator) {
     StackBaseIterator.prototype[Symbol.asyncIterator] = function asyncIterator() {
         var self = this;
         return {

@@ -48,10 +48,10 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.9.1",
+    "@types/node": "^22.9.3",
     "depcheck": "^1.4.7",
     "inherits": "^2.0.4",
-    "ts-dev-stack": "^0.15.8"
+    "ts-dev-stack": "^0.16.0"
   },
   "engines": {
     "node": ">=0.8"
