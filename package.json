@@ -35,23 +35,23 @@
     "build": "tsds build",
     "deploy": "tsds deploy",
     "format": "biome check --write --unsafe src/ test/",
-    "test": "tsds test:node --timeout=10000",
+    "test": "tsds test:node --no-timeouts",
     "test:engines": "nvu engines npm test",
     "version": "tsds version"
   },
   "dependencies": {
     "asap": "^2.0.6",
     "async-compat": "^1.4.7",
-    "fifo": "^2.4.1",
-    "once": "^1.4.0"
+    "call-once-fn": "^1.0.1",
+    "fifo": "^2.4.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^22.9.1",
+    "@types/node": "^22.10.1",
     "depcheck": "^1.4.7",
     "inherits": "^2.0.4",
-    "ts-dev-stack": "^0.15.8"
+    "ts-dev-stack": "^1.2.0"
   },
   "engines": {
     "node": ">=0.8"
