@@ -17,7 +17,7 @@ describe('asyncAwait', () => {
 
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       } catch (err) {
-        assert.ok(!err);
+        assert.ok(!err, err ? err.message : '');
       }
     });
 
@@ -35,7 +35,7 @@ describe('asyncAwait', () => {
 
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       } catch (err) {
-        assert.ok(!err);
+        assert.ok(!err, err ? err.message : '');
       }
     });
   });

@@ -1,5 +1,5 @@
+import once from 'call-once-fn';
 import FIFO from 'fifo';
-import once from 'once';
 
 import createProcesor from './createProcessor.mjs';
 import drainStack from './drainStack.mjs';
