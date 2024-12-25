@@ -1,5 +1,7 @@
+import once from 'call-once-fn';
 import FIFO from 'fifo';
-import once from 'once';
+// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+import Promise from 'pinkie-promise';
 
 import createProcesor from './createProcessor.mjs';
 import drainStack from './drainStack.mjs';
