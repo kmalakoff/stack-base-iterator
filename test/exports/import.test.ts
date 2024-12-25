@@ -13,7 +13,7 @@ describe('exports .ts', () => {
       },
       { callbacks: true, concurrency: 1 },
       (err) => {
-        assert.ok(!err);
+        assert.ok(!err, err ? err.message : '');
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
         done();
       }
