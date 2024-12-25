@@ -1,8 +1,18 @@
 import assert from 'assert';
+// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+import Promise from 'pinkie-promise';
 import EntriesIterator from '../lib/EntriesIterator.cjs';
 
 describe('asyncIterator', () => {
   if (typeof Symbol === 'undefined' || !Symbol.asyncIterator) return;
+  let globalPromise;
+  before(() => {
+    globalPromise = global.Promise;
+    global.Promise = Promise;
+  });
+  after(() => {
+    global.Promise = globalPromise;
+  });
 
   describe('happy path', () => {
     it('concurrency 1', async () => {
@@ -15,7 +25,7 @@ describe('asyncIterator', () => {
 
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       } catch (err) {
-        assert.ok(!err);
+        assert.ok(!err, err ? err.message : '');
       }
     });
 
@@ -33,7 +43,7 @@ describe('asyncIterator', () => {
 
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       } catch (err) {
-        assert.ok(!err);
+        assert.ok(!err, err ? err.message : '');
       }
     });
   });
