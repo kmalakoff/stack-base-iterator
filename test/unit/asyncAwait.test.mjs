@@ -5,14 +5,18 @@ import EntriesIterator from '../lib/EntriesIterator.cjs';
 
 describe('asyncAwait', () => {
   if (typeof Symbol === 'undefined' || !Symbol.asyncIterator) return;
-  let globalPromise;
-  before(() => {
-    globalPromise = global.Promise;
-    global.Promise = Promise;
-  });
-  after(() => {
-    global.Promise = globalPromise;
-  });
+  (() => {
+    // patch and restore promise
+    const root = typeof global !== 'undefined' ? global : window;
+    let rootPromise;
+    before(() => {
+      rootPromise = root.Promise;
+      root.Promise = Promise;
+    });
+    after(() => {
+      root.Promise = rootPromise;
+    });
+  })();
 
   describe('happy path', () => {
     it('concurrency 1', async () => {

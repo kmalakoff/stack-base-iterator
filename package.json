@@ -43,8 +43,7 @@
     "asap": "^2.0.6",
     "async-compat": "^1.4.7",
     "call-once-fn": "^1.0.1",
-    "fifo": "^2.4.1",
-    "pinkie-promise": "^2.0.1"
+    "fifo": "^2.4.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -52,9 +51,8 @@
     "@types/node": "^22.10.2",
     "depcheck": "^1.4.7",
     "inherits": "^2.0.4",
-    "ts-dev-stack": "^1.5.3"
+    "pinkie-promise": "^2.0.1"
   },
-  "packageManager": "npm@11.0.0+sha512.11dff29565d2297c74e7c594a9762581bde969f0aa5cbe6f5b3644bf008a16c065ece61094d9ffbb81125be38df8e1ba43eb8244b3d30c61eb797e9a2440e3ec",
   "engines": {
     "node": ">=0.8"
   },
