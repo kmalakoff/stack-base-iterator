@@ -1,13 +1,13 @@
 import assert from 'assert';
-import EntriesIterator from '../lib/EntriesIterator.cjs';
+import createIterator from '../lib/createIterator.cjs';
 
 describe('exports .ts', () => {
   it('concurrency 1', (done) => {
-    const results = [];
-    const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    const results: number[] = [];
+    const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     // @ts-ignore
     iterator.forEach(
-      (value, callback) => {
+      (value: number, callback) => {
         results.push(value);
         callback();
       },
