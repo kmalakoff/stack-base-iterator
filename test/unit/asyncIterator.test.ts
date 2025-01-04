@@ -1,32 +1,30 @@
 import assert from 'assert';
-// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
-import Promise from 'pinkie-promise';
-import EntriesIterator from '../lib/EntriesIterator.cjs';
+import Pinkie from 'pinkie-promise';
+import createIterator from '../lib/createIterator.cjs';
 
-describe('asyncAwait', () => {
+describe('asyncIterator', () => {
   if (typeof Symbol === 'undefined' || !Symbol.asyncIterator) return;
   (() => {
     // patch and restore promise
-    const root = typeof global !== 'undefined' ? global : window;
-    let rootPromise;
+    // @ts-ignore
+    let rootPromise: Promise;
     before(() => {
-      rootPromise = root.Promise;
-      root.Promise = Promise;
+      rootPromise = global.Promise;
+      // @ts-ignore
+      global.Promise = Pinkie;
     });
     after(() => {
-      root.Promise = rootPromise;
+      global.Promise = rootPromise;
     });
   })();
 
   describe('happy path', () => {
     it('concurrency 1', async () => {
       try {
-        const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        const results = [];
-        let value = await iterator.next();
-        while (value) {
+        const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        const results: number[] = [];
+        for await (const value of iterator) {
           results.push(value);
-          value = await iterator.next();
         }
 
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -37,8 +35,8 @@ describe('asyncAwait', () => {
 
     it('concurrency Infinity', async () => {
       try {
-        const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        const results = [];
+        const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        const results: number[] = [];
 
         await iterator.forEach(
           async (value) => {
