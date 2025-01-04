@@ -12,7 +12,7 @@
   "homepage": "https://github.com/kmalakoff/stack-base-iterator",
   "repository": {
     "type": "git",
-    "url": "git@github.com:kmalakoff/stack-base-iterator.git"
+    "url": "git+ssh://git@github.com/kmalakoff/stack-base-iterator.git"
   },
   "license": "MIT",
   "author": "Kevin Malakoff <kmalakoff@gmail.com> (https://github.com/kmalakoff)",
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "asap": "^2.0.6",
-    "async-compat": "^1.5.4",
+    "async-compat": "^1.5.6",
     "call-once-fn": "^1.0.4",
     "fifo": "^2.4.1"
   },
