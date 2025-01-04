@@ -1,1 +1,1 @@
-ignores: ["stack-base-iterator", "depcheck", "@types/*", "@biomejs/*"]
+ignores: ["stack-base-iterator", "@types/*", "@biomejs/*"]

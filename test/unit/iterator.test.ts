@@ -1,33 +1,31 @@
-// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
-import Promise from 'pinkie-promise';
-
 import assert from 'assert';
-import EntriesIterator from '../lib/EntriesIterator.cjs';
+import Pinkie from 'pinkie-promise';
+import createIterator from '../lib/createIterator.cjs';
 
 describe('iterator', () => {
   (() => {
     // patch and restore promise
-    const root = typeof global !== 'undefined' ? global : window;
-    let rootPromise;
+    // @ts-ignore
+    let rootPromise: Promise;
     before(() => {
-      rootPromise = root.Promise;
-      root.Promise = Promise;
+      rootPromise = global.Promise;
+      global.Promise = Pinkie;
     });
     after(() => {
-      root.Promise = rootPromise;
+      global.Promise = rootPromise;
     });
   })();
 
   describe('happy path', () => {
     it('destroy iterator', () => {
-      const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       iterator.destroy();
       assert.ok(true);
     });
 
     it('concurrency 1', (done) => {
-      const results = [];
-      const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const results: number[] = [];
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       iterator.forEach(
         (value, callback) => {
           results.push(value);
@@ -43,8 +41,8 @@ describe('iterator', () => {
     });
 
     it('concurrency Infinity', (done) => {
-      const results = [];
-      const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const results: number[] = [];
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       iterator.forEach(
         (value, callback) => {
           results.push(value);
@@ -63,8 +61,8 @@ describe('iterator', () => {
     });
 
     it('concurrency 1 - promise', async () => {
-      const results = [];
-      const iterator = new EntriesIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const results: number[] = [];
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       await iterator.forEach(
         (value) => {
           results.push(value);
