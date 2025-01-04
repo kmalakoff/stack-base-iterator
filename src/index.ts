@@ -1,13 +1,26 @@
 import once from 'call-once-fn';
 import FIFO from 'fifo';
 
-import createProcesor from './createProcessor.mjs';
-import drainStack from './drainStack.mjs';
-import fifoRemove from './fifoRemove.mjs';
-import processOrQueue from './processOrQueue.mjs';
+import createProcesor from './createProcessor';
+import drainStack from './drainStack';
+import fifoRemove from './fifoRemove';
+import processOrQueue from './processOrQueue';
 
-export default class StackBaseIterator {
-  constructor(options = {}) {
+import type { DefaultFunction, StackOptions } from './types';
+
+export type * from './types';
+export default class StackBaseIterator implements AsyncIterator<unknown> {
+  options: StackOptions;
+  queued: DefaultFunction[];
+  processors: DefaultFunction[];
+  stack: unknown[];
+  entries: unknown[];
+  links: unknown[];
+  processing: DefaultFunction[];
+  destroyed: unknown;
+  done: unknown;
+
+  constructor(options: StackOptions = {}) {
     this.options = { ...options };
     this.options.error =
       options.error ||
@@ -15,12 +28,12 @@ export default class StackBaseIterator {
         return !!err; // fail on errors
       };
 
-    this.queued = FIFO();
-    this.processors = FIFO();
-    this.stack = FIFO();
-    this.entries = FIFO();
-    this.links = FIFO();
-    this.processing = FIFO();
+    this.queued = FIFO() as unknown as DefaultFunction[];
+    this.processors = FIFO() as unknown as DefaultFunction[];
+    this.stack = FIFO() as unknown as unknown[];
+    this.entries = FIFO() as unknown as unknown[];
+    this.links = FIFO() as unknown as unknown[];
+    this.processing = FIFO() as unknown as DefaultFunction[];
   }
 
   destroy(err) {
@@ -49,9 +62,7 @@ export default class StackBaseIterator {
 
     const self = this;
     return new Promise(function nextPromise(resolve, reject) {
-      self.next(function nextCallback(err, result) {
-        err ? reject(err) : resolve(result);
-      });
+      self.next((err, result) => (err ? reject(err) : resolve(result)));
     });
   }
 
@@ -96,11 +107,7 @@ export default class StackBaseIterator {
       return;
     }
 
-    return new Promise(function forEachPromise(resolve, reject) {
-      self.forEach(fn, options, function forEachCallback(err, done) {
-        err ? reject(err) : resolve(done);
-      });
-    });
+    return new Promise((resolve, reject) => self.forEach(fn, options, (err, done) => (err ? reject(err) : resolve(done))));
   }
 }
 
