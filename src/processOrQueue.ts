@@ -1,7 +1,7 @@
 import compat from 'async-compat';
 
 import asap from 'asap';
-import fifoRemove from './fifoRemove.mjs';
+import fifoRemove from './fifoRemove';
 
 export default function processOrQueue(iterator, callback) {
   if (iterator.done) return callback(null, null);
