@@ -30,7 +30,7 @@ function processResult(err, keep, options, callback) {
 
 export default function createProcessor(next, options, callback) {
   let isProcessing = false;
-  return function processor(doneOrErr) {
+  return function processor(doneOrErr?) {
     if (doneOrErr && processDone(isError(doneOrErr) ? doneOrErr : null, options, callback)) return;
     if (isProcessing) return;
     isProcessing = true;
