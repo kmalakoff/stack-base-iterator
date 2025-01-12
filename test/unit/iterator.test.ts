@@ -33,7 +33,7 @@ describe('iterator', () => {
         },
         { callbacks: true, concurrency: 1 },
         (err) => {
-          assert.ok(!err, err ? err.message : '');
+          if (err) return done(err);
           assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
           done();
         }
@@ -50,7 +50,7 @@ describe('iterator', () => {
         },
         { callbacks: true, concurrency: Infinity },
         (err) => {
-          assert.ok(!err, err ? err.message : '');
+          if (err) return done(err);
           assert.deepEqual(
             results.sort((a, b) => a - b),
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
