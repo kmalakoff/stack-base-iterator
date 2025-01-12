@@ -18,8 +18,7 @@ var BaseIterator = require('stack-base-iterator'));
       // do something
     }
   } catch (err) {
-    assert.ok(!err, err ? err.message : '');
-  }
+    }
 
   iterator.destroy();
   iterator = null;
@@ -47,8 +46,7 @@ var iterator = new YourIterator();
       value = await iterator.next();
     }
   } catch (err) {
-    assert.ok(!err, err ? err.message : '');
-  }
+    }
 
   iterator.destroy();
   iterator = null;
@@ -66,8 +64,7 @@ var iterator = new YourIterator();
       { concurrency: Infinity }
     );
   } catch (err) {
-    assert.ok(!err, err ? err.message : '');
-  }
+    }
 
   iterator.destroy();
   iterator = null;
@@ -93,8 +90,7 @@ iterator.forEach(
   },
   { callbacks: true, concurrency: 1 },
   function (err) {
-    assert.ok(!err, err ? err.message : '');
-
+  
     iterator.destroy();
     iterator = null;
   }
