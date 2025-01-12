@@ -20,35 +20,27 @@ describe('asyncIterator', () => {
 
   describe('happy path', () => {
     it('concurrency 1', async () => {
-      try {
-        const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        const results: number[] = [];
-        for await (const value of iterator) {
-          results.push(value);
-        }
-
-        assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-      } catch (err) {
-        assert.ok(!err, err ? err.message : '');
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const results: number[] = [];
+      for await (const value of iterator) {
+        results.push(value);
       }
+
+      assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     });
 
     it('concurrency Infinity', async () => {
-      try {
-        const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-        const results: number[] = [];
+      const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+      const results: number[] = [];
 
-        await iterator.forEach(
-          async (value) => {
-            results.push(value);
-          },
-          { concurrency: Infinity }
-        );
+      await iterator.forEach(
+        async (value) => {
+          results.push(value);
+        },
+        { concurrency: Infinity }
+      );
 
-        assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-      } catch (err) {
-        assert.ok(!err, err ? err.message : '');
-      }
+      assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     });
   });
 
