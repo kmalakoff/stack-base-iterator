@@ -37,15 +37,14 @@
   },
   "dependencies": {
     "asap": "^2.0.6",
-    "async-compat": "^1.6.3",
-    "call-once-fn": "^1.0.8",
+    "async-compat": "^1.6.4",
+    "call-once-fn": "^1.0.9",
     "fifo": "^2.4.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^22.10.6",
-    "pinkie-promise": "^2.0.1"
+    "@types/mocha": "*",
+    "@types/node": "*",
+    "pinkie-promise": "*"
   },
   "engines": {
     "node": ">=0.8"
