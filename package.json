@@ -38,7 +38,7 @@
   "dependencies": {
     "asap": "^2.0.6",
     "async-compat": "^1.6.5",
-    "call-once-fn": "^1.0.9",
+    "call-once-fn": "^1.0.12",
     "fifo": "^2.4.1"
   },
   "devDependencies": {
