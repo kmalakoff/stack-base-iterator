@@ -10,15 +10,15 @@ import type { Callback, DefaultFunction, EachFunction, ForEachOptions, Processor
 
 export type * from './types.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
-  private options: StackOptions;
-  private queued: DefaultFunction[];
-  private processors: DefaultFunction[];
-  private stack: unknown[];
-  private entries: unknown[];
-  private links: unknown[];
-  private processing: DefaultFunction[];
-  private destroyed: boolean;
-  private done: boolean;
+  protected options: StackOptions;
+  protected stack: unknown[];
+  protected queued: DefaultFunction[];
+  protected processors: DefaultFunction[];
+  protected entries: unknown[];
+  protected links: unknown[];
+  protected processing: DefaultFunction[];
+  protected destroyed: boolean;
+  protected done: boolean;
 
   constructor(options: StackOptions = {}) {
     this.options = { ...options };
