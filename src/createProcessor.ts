@@ -1,8 +1,10 @@
 import compat from 'async-compat';
 
+import type { Callback, ProcessorOptions } from './types.js';
+
 const isError = (e) => e && e.stack && e.message;
 
-function processDone(err, options, callback) {
+function processDone(err: Error, options: ProcessorOptions, callback: Callback) {
   // mark this iteration done
   options.err = options.err || err;
   options.done = true;
@@ -28,7 +30,7 @@ function processResult(err, keep, options, callback) {
   return true;
 }
 
-export default function createProcessor(next, options, callback) {
+export default function createProcessor(next, options: ProcessorOptions, callback: Callback) {
   let isProcessing = false;
   return function processor(doneOrErr?) {
     if (doneOrErr && processDone(isError(doneOrErr) ? doneOrErr : null, options, callback)) return;
