@@ -1,4 +1,4 @@
-import processOrQueue from './processOrQueue';
+import processOrQueue from './processOrQueue.js';
 
 function canProcess(iterator) {
   if (iterator.done || !iterator.stack.length) return false;
