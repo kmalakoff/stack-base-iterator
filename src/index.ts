@@ -1,14 +1,14 @@
 import once from 'call-once-fn';
 import FIFO from 'fifo';
 
-import createProcesor from './createProcessor';
-import drainStack from './drainStack';
-import fifoRemove from './fifoRemove';
-import processOrQueue from './processOrQueue';
+import createProcesor from './createProcessor.js';
+import drainStack from './drainStack.js';
+import fifoRemove from './fifoRemove.js';
+import processOrQueue from './processOrQueue.js';
 
-import type { DefaultFunction, StackOptions } from './types';
+import type { DefaultFunction, StackOptions } from './types.js';
 
-export type * from './types';
+export type * from './types.js';
 export default class StackBaseIterator implements AsyncIterator<unknown> {
   options: StackOptions;
   queued: DefaultFunction[];
