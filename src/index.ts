@@ -9,7 +9,7 @@ import processOrQueue from './processOrQueue.js';
 import type { Callback, DefaultFunction, EachFunction, ForEachOptions, ProcessorOptions, StackOptions } from './types.js';
 
 export type * from './types.js';
-export default class StackBaseIterator implements AsyncIterator<unknown> {
+export default class StackBaseIterator<T> implements AsyncIterator<T> {
   private options: StackOptions;
   private queued: DefaultFunction[];
   private processors: DefaultFunction[];
@@ -17,7 +17,7 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
   private entries: unknown[];
   private links: unknown[];
   private processing: DefaultFunction[];
-  private destroyed: unknown;
+  private destroyed: boolean;
   private done: boolean;
 
   constructor(options: StackOptions = {}) {
@@ -42,7 +42,8 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
     drainStack(this);
   }
 
-  next(callback?: Callback) {
+  next(...[value]: [] | [unknown]): Promise<IteratorResult<T, unknown>> {
+    const callback = value as Callback;
     if (typeof callback === 'function') return processOrQueue(this, once(callback));
 
     return new Promise((resolve, reject) => {
@@ -50,7 +51,7 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
     });
   }
 
-  forEach(fn: EachFunction, options: ForEachOptions | Callback, callback?: Callback): undefined | Promise<unknown> {
+  forEach(fn: EachFunction<T>, options: ForEachOptions | Callback, callback?: Callback): undefined | Promise<unknown> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
       callback = options as Callback;
@@ -63,7 +64,7 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
         return;
       }
       options = options || {};
-      const processorOptions: ProcessorOptions = {
+      const processorOptions: ProcessorOptions<T> = {
         each: fn,
         callbacks: options.callbacks || false,
         concurrency: options.concurrency || 1,
@@ -80,7 +81,7 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
         },
       };
 
-      let processor = createProcesor(this.next.bind(this), processorOptions, (err) => {
+      let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
         if (!this.destroyed) fifoRemove(this.processors, processor);
         processor = null;
         options = null;

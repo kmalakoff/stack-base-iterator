@@ -4,7 +4,7 @@ import type { Callback, ProcessorOptions } from './types.js';
 
 const isError = (e) => e && e.stack && e.message;
 
-function processDone(err: Error, options: ProcessorOptions, callback: Callback) {
+function processDone<T>(err: Error, options: ProcessorOptions<T>, callback: Callback) {
   // mark this iteration done
   options.err = options.err || err;
   options.done = true;
@@ -30,7 +30,7 @@ function processResult(err, keep, options, callback) {
   return true;
 }
 
-export default function createProcessor(next, options: ProcessorOptions, callback: Callback) {
+export default function createProcessor<T>(next, options: ProcessorOptions<T>, callback: Callback) {
   let isProcessing = false;
   return function processor(doneOrErr?) {
     if (doneOrErr && processDone(isError(doneOrErr) ? doneOrErr : null, options, callback)) return;
