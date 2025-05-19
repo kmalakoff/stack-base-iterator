@@ -1,6 +1,9 @@
 export type DefaultFunction = (arg1?: unknown, arg2?: unknown) => void;
 export type Callback = (error?: Error, value?: unknown) => void;
-export type EachFunction<T> = (value: T, callback?: Callback) => undefined | Promise<unknown>;
+
+export type EachFunctionCallback<T> = (value: T, callback: Callback) => undefined;
+export type EachFunctionPromise<T> = (value: T) => Promise<unknown>;
+export type EachFunction<T> = EachFunctionCallback<T> | EachFunctionPromise<T>;
 
 export interface StackOptions {
   error?: (err: NodeJS.ErrnoException) => boolean;
