@@ -36,25 +36,10 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
     this.processing = FIFO() as unknown as DefaultFunction[];
   }
 
-  destroy(err) {
-    if (this.destroyed) throw new Error('Already destroyed');
-    this.destroyed = true;
-    this.end(err);
-  }
-
   push(item) {
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(item);
     drainStack(this);
-  }
-
-  end(err) {
-    if (this.done) return;
-    this.done = true;
-    while (this.processors.length) this.processors.pop()(err || true);
-    while (this.processing.length) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
-    while (this.queued.length) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
-    while (this.stack.length) this.stack.pop();
   }
 
   next(callback) {
@@ -106,6 +91,21 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
     }
 
     return new Promise((resolve, reject) => this.forEach(fn, options, (err, done) => (err ? reject(err) : resolve(done))));
+  }
+
+  end(err?: Error) {
+    if (this.done) return;
+    this.done = true;
+    while (this.processors.length) this.processors.pop()(err || true);
+    while (this.processing.length) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
+    while (this.queued.length) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
+    while (this.stack.length) this.stack.pop();
+  }
+
+  destroy(err?: Error) {
+    if (this.destroyed) throw new Error('Already destroyed');
+    this.destroyed = true;
+    this.end(err);
   }
 }
 
