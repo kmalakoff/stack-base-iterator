@@ -1,5 +1,5 @@
 export interface StackOptions {
-  error?: (err) => boolean;
+  error?: (err: NodeJS.ErrnoException) => boolean;
 }
 
-export type DefaultFunction = (arg1?, arg2?) => void;
+export type DefaultFunction = (arg1?: unknown, arg2?: unknown) => void;

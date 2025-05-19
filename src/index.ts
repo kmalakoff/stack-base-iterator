@@ -60,14 +60,12 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
   next(callback) {
     if (typeof callback === 'function') return processOrQueue(this, once(callback));
 
-    const self = this;
-    return new Promise(function nextPromise(resolve, reject) {
-      self.next((err, result) => (err ? reject(err) : resolve(result)));
+    return new Promise((resolve, reject) => {
+      this.next((err, result) => (err ? reject(err) : resolve(result)));
     });
   }
 
   forEach(fn, options, callback) {
-    const self = this;
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
       callback = options;
@@ -89,25 +87,25 @@ export default class StackBaseIterator implements AsyncIterator<unknown> {
           },
         total: 0,
         counter: 0,
-        stop: function stop() {
-          return self.done || self.queued.length >= self.stack.length;
+        stop: () => {
+          return this.done || this.queued.length >= this.stack.length;
         },
       };
 
-      let processor = createProcesor(this.next.bind(this), options, function processorCallback(err) {
-        if (!self.destroyed) fifoRemove(self.processors, processor);
+      let processor = createProcesor(this.next.bind(this), options, (err) => {
+        if (!this.destroyed) fifoRemove(this.processors, processor);
         processor = null;
         options = null;
-        const done = !self.stack.length;
-        if ((err || done) && !self.done) self.end(err);
-        return callback(err, self.done || done);
+        const done = !this.stack.length;
+        if ((err || done) && !this.done) this.end(err);
+        return callback(err, this.done || done);
       });
       this.processors.push(processor);
       processor();
       return;
     }
 
-    return new Promise((resolve, reject) => self.forEach(fn, options, (err, done) => (err ? reject(err) : resolve(done))));
+    return new Promise((resolve, reject) => this.forEach(fn, options, (err, done) => (err ? reject(err) : resolve(done))));
   }
 }
 
