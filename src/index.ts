@@ -36,6 +36,10 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
     this.processing = FIFO() as unknown as DefaultFunction[];
   }
 
+  isDone() {
+    return this.done;
+  }
+
   push(item) {
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(item);
