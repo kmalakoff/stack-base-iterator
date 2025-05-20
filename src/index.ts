@@ -55,7 +55,7 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
     });
   }
 
-  forEach(fn: EachFunction<T>, options: ForEachOptions | Callback, callback?: Callback): undefined | Promise<unknown> {
+  forEach(fn: EachFunction<T>, options?: ForEachOptions | Callback, callback?: Callback): undefined | Promise<unknown> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
       callback = options as Callback;
