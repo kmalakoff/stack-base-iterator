@@ -5,7 +5,7 @@ import createProcesor from './createProcessor.js';
 import drainStack from './drainStack.js';
 import processOrQueue from './processOrQueue.js';
 
-import type { AbstractIterator, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
+import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
 
 export type * from './types.js';
 export { default as LinkedList } from './LinkedList.js';
@@ -13,8 +13,8 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
   protected done: boolean;
   protected stack: LinkedList<StackFunction<T>>;
   protected processors: LinkedList<Processor>;
-  protected queued: LinkedList<ProcessCallback>;
-  protected processing: LinkedList<ProcessCallback>;
+  protected queued: LinkedList<ProcessCallback<T>>;
+  protected processing: LinkedList<ProcessCallback<T>>;
 
   protected options: StackOptions;
   protected entries: LinkedList<T>;
@@ -31,8 +31,8 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
     this.done = false;
     this.stack = new LinkedList<StackFunction<T>>();
     this.processors = new LinkedList<Processor>();
-    this.queued = new LinkedList<ProcessCallback>();
-    this.processing = new LinkedList<ProcessCallback>();
+    this.queued = new LinkedList<ProcessCallback<T>>();
+    this.processing = new LinkedList<ProcessCallback<T>>();
     this.entries = new LinkedList<T>();
   }
 
@@ -47,18 +47,21 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
   }
 
   next(...[value]: [] | [unknown]): Promise<IteratorResult<T, unknown>> {
-    const callback = value as ProcessCallback;
-    if (typeof callback === 'function') return processOrQueue(this as unknown as AbstractIterator<T>, once(callback));
+    const callback = value as ProcessCallback<T>;
+    if (typeof callback === 'function') {
+      processOrQueue(this as unknown as AbstractIterator<T>, once(callback) as ProcessCallback<T>);
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       this.next((err, result) => (err ? reject(err) : resolve(result)));
     });
   }
 
-  forEach(fn: EachFunction<T>, options?: ForEachOptions | ProcessCallback, callback?: ProcessCallback): undefined | Promise<boolean> {
+  forEach(fn: EachFunction<T>, options?: ForEachOptions | ProcessCallback<T>, callback?: EachDoneCallback): undefined | Promise<boolean> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
-      callback = options as ProcessCallback;
+      callback = options as EachDoneCallback;
       options = {};
     }
 

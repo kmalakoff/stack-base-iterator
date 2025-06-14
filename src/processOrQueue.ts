@@ -2,9 +2,9 @@ import compat from 'async-compat';
 
 import asap from 'asap';
 
-import type { AbstractIterator, EachCallback } from './types.js';
+import type { AbstractIterator, ProcessCallback } from './types.js';
 
-export default function processOrQueue<T>(iterator: AbstractIterator<T>, callback: EachCallback): undefined {
+export default function processOrQueue<T>(iterator: AbstractIterator<T>, callback: ProcessCallback<T>): undefined {
   if (iterator.done) {
     callback(null, null);
     return;
@@ -19,7 +19,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
   // process next
   const next = iterator.stack.pop();
   iterator.processing.push(callback);
-  next(iterator, (err?: Error, result?: T) => {
+  next(iterator, (err?: Error, result?: T): undefined => {
     // break call stack
     asap(() => {
       // done is based on stack being empty and not error state as the user may choose to skip the error
