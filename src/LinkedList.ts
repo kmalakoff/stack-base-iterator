@@ -1,34 +1,18 @@
-import fifo from 'fifo';
+import FIFO from 'fifo';
 
-export default class LinkedList<T> {
-  private list: fifo<T>;
-  length: number;
-
-  constructor() {
-    this.list = new fifo<T>();
-  }
-
+export default class LinkedList<T> extends FIFO<T> {
+  // @ts-ignore
   pop(): T {
-    const value = this.list.pop();
-    this.length = this.list.length;
-    return value as T;
+    return super.pop() as T;
   }
-
-  push(value: T): LinkedList<T> {
-    this.list.push(value);
-    this.length = this.list.length;
-    return this;
-  }
-
-  head(): T {
-    return this.list.last();
-  }
-
+  // @ts-ignore
   remove(value: T): boolean {
-    for (let node = this.list.node; node; node = this.list.next(node)) {
+    // @ts-ignore - a node called from the base class
+    if (value.list && value.prev && value.next) return super.remove(value);
+
+    for (let node = this.node; node; node = this.next(node)) {
       if (node.value === value) {
-        this.list.remove(node);
-        this.length = this.list.length;
+        super.remove(node);
         return true;
       }
     }
