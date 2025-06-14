@@ -107,10 +107,10 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
   end(err?: Error) {
     if (this.done) return;
     this.done = true;
-    while (this.processors.length) this.processors.pop()(err || true);
-    while (this.processing.length) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
-    while (this.queued.length) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
-    while (this.stack.length) this.stack.pop();
+    while (this.processors.length > 0) this.processors.pop()(err || true);
+    while (this.processing.length > 0) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
+    while (this.queued.length > 0) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
+    while (this.stack.length > 0) this.stack.pop();
   }
 
   destroy(err?: Error) {
