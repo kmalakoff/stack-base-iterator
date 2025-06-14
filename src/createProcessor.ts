@@ -1,10 +1,10 @@
 import compat from 'async-compat';
 
-import type { Callback, ProcessorOptions } from './types.js';
+import type { Next, ProcessCallback, Processor, ProcessorOptions } from './types.js';
 
-const isError = (e) => e && e.stack && e.message;
+const isError = (err?: Error): boolean => err && err.stack !== undefined && err.message !== undefined;
 
-function processDone<T>(err: Error, options: ProcessorOptions<T>, callback: Callback) {
+function processDone<T>(err: Error, options: ProcessorOptions<T>, callback: ProcessCallback) {
   // mark this iteration done
   options.err = options.err || err;
   options.done = true;
@@ -30,10 +30,11 @@ function processResult(err, keep, options, callback) {
   return true;
 }
 
-export default function createProcessor<T>(next, options: ProcessorOptions<T>, callback: Callback) {
+export default function createProcessor<T>(next: Next, options: ProcessorOptions<T>, callback: ProcessCallback): Processor {
   let isProcessing = false;
-  return function processor(doneOrErr?) {
-    if (doneOrErr && processDone(isError(doneOrErr) ? doneOrErr : null, options, callback)) return;
+  return function processor(doneOrError?: Error | boolean) {
+    const error = doneOrError as Error;
+    if (doneOrError && processDone(isError(error) ? error : null, options, callback)) return;
     if (isProcessing) return;
     isProcessing = true;
 
