@@ -6,19 +6,19 @@ import drainStack from './drainStack.js';
 import fifoRemove from './fifoRemove.js';
 import processOrQueue from './processOrQueue.js';
 
-import type { Callback, DefaultFunction, EachFunction, ForEachOptions, ProcessorOptions, StackOptions } from './types.js';
+import type { DefaultFunction, EachFunction, ForEachOptions, Iterator, ProcessCallback, ProcessorOptions, StackOptions } from './types.js';
 
 export type * from './types.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
-  protected options: StackOptions;
-  protected stack: unknown[];
+  protected done: boolean;
+  protected stack: DefaultFunction[];
   protected queued: DefaultFunction[];
   protected processors: DefaultFunction[];
-  protected entries: unknown[];
-  protected links: unknown[];
   protected processing: DefaultFunction[];
+
+  protected options: StackOptions;
+  protected entries: T[];
   protected destroyed: boolean;
-  protected done: boolean;
 
   constructor(options: StackOptions = {}) {
     this.options = { ...options };
@@ -28,37 +28,37 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
         return !!err; // fail on errors
       };
 
+    this.done = false;
+    this.stack = FIFO<T>() as unknown as DefaultFunction[];
     this.queued = FIFO() as unknown as DefaultFunction[];
     this.processors = FIFO() as unknown as DefaultFunction[];
-    this.stack = FIFO() as unknown as unknown[];
-    this.entries = FIFO() as unknown as unknown[];
-    this.links = FIFO() as unknown as unknown[];
     this.processing = FIFO() as unknown as DefaultFunction[];
+    this.entries = FIFO() as unknown as T[];
   }
 
   isDone() {
     return this.done;
   }
 
-  push(item) {
+  push(item: DefaultFunction) {
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(item);
-    drainStack(this);
+    drainStack<T>(this as unknown as Iterator<T>);
   }
 
   next(...[value]: [] | [unknown]): Promise<IteratorResult<T, unknown>> {
-    const callback = value as Callback;
-    if (typeof callback === 'function') return processOrQueue(this, once(callback));
+    const callback = value as ProcessCallback;
+    if (typeof callback === 'function') return processOrQueue(this as unknown as Iterator<T>, once(callback));
 
     return new Promise((resolve, reject) => {
       this.next((err, result) => (err ? reject(err) : resolve(result)));
     });
   }
 
-  forEach(fn: EachFunction<T>, options?: ForEachOptions | Callback, callback?: Callback): undefined | Promise<unknown> {
+  forEach(fn: EachFunction<T>, options?: ForEachOptions | ProcessCallback, callback?: ProcessCallback): undefined | Promise<boolean> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
-      callback = options as Callback;
+      callback = options as ProcessCallback;
       options = {};
     }
 
@@ -86,7 +86,7 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       };
 
       let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
-        if (!this.destroyed) fifoRemove(this.processors, processor);
+        if (!this.destroyed) fifoRemove<DefaultFunction>(this.processors as unknown as FIFO<DefaultFunction>, processor);
         processor = null;
         options = null;
         const done = !this.stack.length;
@@ -98,7 +98,11 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       return;
     }
 
-    return new Promise((resolve, reject) => this.forEach(fn, options, (err, done) => (err ? reject(err) : resolve(done))));
+    return new Promise((resolve, reject) =>
+      this.forEach(fn, options, (err?: Error, done?: boolean) => {
+        err ? reject(err) : resolve(done);
+      })
+    );
   }
 
   end(err?: Error) {
