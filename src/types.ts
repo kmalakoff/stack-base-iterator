@@ -30,7 +30,7 @@ export interface ProcessorOptions<T> extends ForEachOptions {
   err?: Error;
 }
 
-export interface Iterator<_T> {
+export interface AbstractIterator<_T> {
   done: boolean;
   stack: DefaultFunction[];
   queued: DefaultFunction[];

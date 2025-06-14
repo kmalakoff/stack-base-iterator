@@ -4,9 +4,9 @@ import type FIFO from 'fifo';
 import asap from 'asap';
 import fifoRemove from './fifoRemove.js';
 
-import type { DefaultFunction, EachCallback, Iterator } from './types.js';
+import type { AbstractIterator, DefaultFunction, EachCallback } from './types.js';
 
-export default function processOrQueue<T>(iterator: Iterator<T>, callback: EachCallback): undefined {
+export default function processOrQueue<T>(iterator: AbstractIterator<T>, callback: EachCallback): undefined {
   if (iterator.done) {
     callback(null, null);
     return;
