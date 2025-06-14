@@ -1,5 +1,5 @@
 import once from 'call-once-fn';
-import LinkedList from './LinkedList';
+import LinkedList from './LinkedList.js';
 
 import createProcesor from './createProcessor.js';
 import drainStack from './drainStack.js';
