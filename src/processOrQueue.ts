@@ -12,7 +12,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
 
   // nothing to process so queue
   if (!iterator.stack.length) {
-    iterator.queued.push(callback);
+    iterator.queued.unshift(callback);
     return;
   }
 
@@ -27,7 +27,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
       if (iterator.done) return callback(null, null); // early exit
       if (err && compat.defaultValue(iterator.options.error(err), true)) err = null; // skip error
 
-      const done = !iterator.stack.length && iterator.processing.length <= 0;
+      const done = iterator.stack.length <= 0 && iterator.processing.length <= 0;
       !done && !err && !result ? processOrQueue(iterator, callback) : callback(err, result || null);
       if (done && !iterator.done) iterator.end(); // end
     });
