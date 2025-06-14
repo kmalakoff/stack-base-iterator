@@ -19,7 +19,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
   // process next
   const next = iterator.stack.pop();
   iterator.processing.push(callback);
-  next(iterator, function nextCallback(err: Error, result: T) {
+  next(iterator, (err?: Error, result?: T) => {
     // break call stack
     asap(() => {
       // done is based on stack being empty and not error state as the user may choose to skip the error
@@ -28,7 +28,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
       if (err && compat.defaultValue(iterator.options.error(err), true)) err = null; // skip error
 
       const done = iterator.stack.length <= 0 && iterator.processing.length <= 0;
-      !done && !err && !result ? processOrQueue(iterator, callback) : callback(err, result || null);
+      !done && !err && !result ? processOrQueue<T>(iterator, callback) : callback(err, result || null);
       if (done && !iterator.done) iterator.end(); // end
     });
   });
