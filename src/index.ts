@@ -6,7 +6,7 @@ import drainStack from './drainStack.js';
 import fifoRemove from './fifoRemove.js';
 import processOrQueue from './processOrQueue.js';
 
-import type { DefaultFunction, EachFunction, ForEachOptions, Iterator, ProcessCallback, ProcessorOptions, StackOptions } from './types.js';
+import type { AbstractIterator, DefaultFunction, EachFunction, ForEachOptions, ProcessCallback, ProcessorOptions, StackOptions } from './types.js';
 
 export type * from './types.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
@@ -43,12 +43,12 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
   push(item: DefaultFunction) {
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(item);
-    drainStack<T>(this as unknown as Iterator<T>);
+    drainStack<T>(this as unknown as AbstractIterator<T>);
   }
 
   next(...[value]: [] | [unknown]): Promise<IteratorResult<T, unknown>> {
     const callback = value as ProcessCallback;
-    if (typeof callback === 'function') return processOrQueue(this as unknown as Iterator<T>, once(callback));
+    if (typeof callback === 'function') return processOrQueue(this as unknown as AbstractIterator<T>, once(callback));
 
     return new Promise((resolve, reject) => {
       this.next((err, result) => (err ? reject(err) : resolve(result)));

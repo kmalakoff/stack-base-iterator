@@ -1,9 +1,9 @@
 import type FIFO from 'fifo';
 import processOrQueue from './processOrQueue.js';
 
-import type { DefaultFunction, Iterator } from './types.js';
+import type { AbstractIterator, DefaultFunction } from './types.js';
 
-function canProcess<T>(iterator: Iterator<T>): boolean {
+function canProcess<T>(iterator: AbstractIterator<T>): boolean {
   if (iterator.done || !iterator.stack.length) return false;
   if (iterator.queued.length) return true;
   if (!iterator.processors.length) return false;
@@ -12,7 +12,7 @@ function canProcess<T>(iterator: Iterator<T>): boolean {
   return iterator.queued.length > 0;
 }
 
-export default function drainStack<T>(iterator: Iterator<T>): undefined {
+export default function drainStack<T>(iterator: AbstractIterator<T>): undefined {
   while (canProcess<T>(iterator)) {
     processOrQueue(iterator, iterator.queued.pop());
   }
