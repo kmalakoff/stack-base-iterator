@@ -1,7 +1,6 @@
 import type LinkedList from './LinkedList.js';
 
 export { default as LinkedList } from './LinkedList.js';
-export type DefaultFunction = (arg1?: unknown, arg2?: unknown) => void;
 
 export type ProcessCallback = (error?: Error, done?: boolean) => void;
 export type Processor = (doneOrError?: Error | boolean) => void;
@@ -33,12 +32,14 @@ export interface ProcessorOptions<T> extends ForEachOptions {
   err?: Error;
 }
 
-export interface AbstractIterator<_T> {
+export type StackFunction<T> = (iterator: AbstractIterator<T>, callback: EachCallback) => void;
+
+export interface AbstractIterator<T> {
   done: boolean;
-  stack: LinkedList<DefaultFunction>;
-  queued: LinkedList<DefaultFunction>;
-  processors: LinkedList<DefaultFunction>;
-  processing: LinkedList<DefaultFunction>;
+  stack: LinkedList<StackFunction<T>>;
+  processors: LinkedList<Processor>;
+  queued: LinkedList<ProcessCallback>;
+  processing: LinkedList<ProcessCallback>;
   options: StackOptions;
   end: () => undefined;
 }

@@ -5,15 +5,15 @@ import createProcesor from './createProcessor.js';
 import drainStack from './drainStack.js';
 import processOrQueue from './processOrQueue.js';
 
-import type { AbstractIterator, DefaultFunction, EachFunction, ForEachOptions, ProcessCallback, ProcessorOptions, StackOptions } from './types.js';
+import type { AbstractIterator, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
 
 export type * from './types.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
   protected done: boolean;
-  protected stack: LinkedList<DefaultFunction>;
-  protected queued: LinkedList<DefaultFunction>;
-  protected processors: LinkedList<DefaultFunction>;
-  protected processing: LinkedList<DefaultFunction>;
+  protected stack: LinkedList<StackFunction<T>>;
+  protected processors: LinkedList<Processor>;
+  protected queued: LinkedList<ProcessCallback>;
+  protected processing: LinkedList<ProcessCallback>;
 
   protected options: StackOptions;
   protected entries: LinkedList<T>;
@@ -28,10 +28,10 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       };
 
     this.done = false;
-    this.stack = new LinkedList<DefaultFunction>();
-    this.queued = new LinkedList<DefaultFunction>();
-    this.processors = new LinkedList<DefaultFunction>();
-    this.processing = new LinkedList<DefaultFunction>();
+    this.stack = new LinkedList<StackFunction<T>>();
+    this.processors = new LinkedList<Processor>();
+    this.queued = new LinkedList<ProcessCallback>();
+    this.processing = new LinkedList<ProcessCallback>();
     this.entries = new LinkedList<T>();
   }
 
@@ -39,9 +39,9 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
     return this.done;
   }
 
-  push(item: DefaultFunction) {
+  push(fn: StackFunction<T>) {
     if (this.done) return console.log('Attempting to push on a done iterator');
-    this.stack.push(item);
+    this.stack.push(fn);
     drainStack<T>(this as unknown as AbstractIterator<T>);
   }
 
