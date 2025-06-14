@@ -85,7 +85,7 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       };
 
       let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
-        if (!this.destroyed) this.processors.remove(processor);
+        if (!this.destroyed) this.processors.removeValue(processor);
         processor = null;
         options = null;
         const done = !this.stack.length;
