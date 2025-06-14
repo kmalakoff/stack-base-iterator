@@ -1,7 +1,5 @@
 import type LinkedList from './LinkedList.js';
 
-export { default as LinkedList } from './LinkedList.js';
-
 export type ProcessCallback = (error?: Error, done?: boolean) => void;
 export type Processor = (doneOrError?: Error | boolean) => void;
 

@@ -8,6 +8,7 @@ import processOrQueue from './processOrQueue.js';
 import type { AbstractIterator, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
 
 export type * from './types.js';
+export { default as LinkedList } from './LinkedList.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
   protected done: boolean;
   protected stack: LinkedList<StackFunction<T>>;
