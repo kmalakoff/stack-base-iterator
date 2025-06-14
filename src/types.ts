@@ -1,14 +1,15 @@
 import type LinkedList from './LinkedList.js';
 
-export type ProcessCallback = (error?: Error, done?: boolean) => void;
-export type Processor = (doneOrError?: Error | boolean) => void;
+export type ProcessCallback<T> = (error?: Error, value?: T | null) => undefined;
+export type Processor = (doneOrError?: Error | boolean) => undefined;
 
-export type EachCallback = (error?: Error, value?: unknown) => void;
-export type EachFunctionCallback<T> = (value: T, callback: EachCallback) => undefined;
-export type EachFunctionPromise<T> = (value: T) => Promise<unknown>;
-export type EachFunction<T> = EachFunctionCallback<T> | EachFunctionPromise<T>;
+export type EachDoneCallback = (error?: Error, value?: boolean) => undefined;
+export type EachCallback<T> = (value: T, callback: EachDoneCallback) => undefined;
+export type EachPromise<T> = (value: T) => Promise<boolean>;
+export type EachFunction<T> = EachCallback<T> | EachPromise<T>;
 
-export type Next = (value: EachCallback) => void;
+export type ValueCallback<T> = (error?: Error, value?: T) => boolean;
+export type Next<T> = (callback: ProcessCallback<T>) => undefined;
 
 export interface StackOptions {
   error?: (err: NodeJS.ErrnoException) => boolean;
@@ -30,14 +31,14 @@ export interface ProcessorOptions<T> extends ForEachOptions {
   err?: Error;
 }
 
-export type StackFunction<T> = (iterator: AbstractIterator<T>, callback: EachCallback) => void;
+export type StackFunction<T> = (iterator: AbstractIterator<T>, callback: ValueCallback<T>) => void;
 
 export interface AbstractIterator<T> {
   done: boolean;
   stack: LinkedList<StackFunction<T>>;
   processors: LinkedList<Processor>;
-  queued: LinkedList<ProcessCallback>;
-  processing: LinkedList<ProcessCallback>;
+  queued: LinkedList<ProcessCallback<T>>;
+  processing: LinkedList<ProcessCallback<T>>;
   options: StackOptions;
   end: () => undefined;
 }

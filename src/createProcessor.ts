@@ -1,10 +1,10 @@
 import compat from 'async-compat';
 
-import type { Next, ProcessCallback, Processor, ProcessorOptions } from './types.js';
+import type { EachDoneCallback, Next, Processor, ProcessorOptions } from './types.js';
 
 const isError = (err?: Error): boolean => err && err.stack !== undefined && err.message !== undefined;
 
-function processDone<T>(err: Error, options: ProcessorOptions<T>, callback: ProcessCallback) {
+function processDone<T>(err: Error, options: ProcessorOptions<T>, callback: EachDoneCallback) {
   // mark this iteration done
   options.err = options.err || err;
   options.done = true;
@@ -30,9 +30,9 @@ function processResult(err, keep, options, callback) {
   return true;
 }
 
-export default function createProcessor<T>(next: Next, options: ProcessorOptions<T>, callback: ProcessCallback): Processor {
+export default function createProcessor<T>(next: Next<T>, options: ProcessorOptions<T>, callback: EachDoneCallback): Processor {
   let isProcessing = false;
-  return function processor(doneOrError?: Error | boolean) {
+  return function processor(doneOrError?: Error | boolean): undefined {
     const error = doneOrError as Error;
     if (doneOrError && processDone(isError(error) ? error : null, options, callback)) return;
     if (isProcessing) return;
@@ -41,11 +41,14 @@ export default function createProcessor<T>(next: Next, options: ProcessorOptions
     let counter = 0;
     while (options.counter < options.concurrency) {
       if (options.done || options.stop(counter++)) break;
-      if (options.total >= options.limit) return processDone(null, options, callback);
+      if (options.total >= options.limit) {
+        processDone(null, options, callback);
+        return;
+      }
       options.total++;
       options.counter++;
 
-      next((err, value) => {
+      next((err?: Error, value?: unknown) => {
         if (err || value === null) {
           return !processResult(err, false, options, callback) && !isProcessing ? processor() : undefined;
         }
