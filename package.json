@@ -38,8 +38,8 @@
   },
   "dependencies": {
     "asap": "^2.0.6",
-    "async-compat": "^1.6.11",
-    "call-once-fn": "^1.0.17",
+    "async-compat": "^1.6.13",
+    "call-once-fn": "^1.0.18",
     "fifo": "^2.4.1"
   },
   "devDependencies": {
