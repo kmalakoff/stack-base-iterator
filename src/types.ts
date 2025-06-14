@@ -1,3 +1,6 @@
+import type LinkedList from './LinkedList.js';
+
+export { default as LinkedList } from './LinkedList.js';
 export type DefaultFunction = (arg1?: unknown, arg2?: unknown) => void;
 
 export type ProcessCallback = (error?: Error, done?: boolean) => void;
@@ -32,10 +35,10 @@ export interface ProcessorOptions<T> extends ForEachOptions {
 
 export interface AbstractIterator<_T> {
   done: boolean;
-  stack: DefaultFunction[];
-  queued: DefaultFunction[];
-  processors: DefaultFunction[];
-  processing: DefaultFunction[];
+  stack: LinkedList<DefaultFunction>;
+  queued: LinkedList<DefaultFunction>;
+  processors: LinkedList<DefaultFunction>;
+  processing: LinkedList<DefaultFunction>;
   options: StackOptions;
   end: () => undefined;
 }

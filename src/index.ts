@@ -1,9 +1,8 @@
 import once from 'call-once-fn';
-import FIFO from 'fifo';
+import LinkedList from './LinkedList';
 
 import createProcesor from './createProcessor.js';
 import drainStack from './drainStack.js';
-import fifoRemove from './fifoRemove.js';
 import processOrQueue from './processOrQueue.js';
 
 import type { AbstractIterator, DefaultFunction, EachFunction, ForEachOptions, ProcessCallback, ProcessorOptions, StackOptions } from './types.js';
@@ -11,13 +10,13 @@ import type { AbstractIterator, DefaultFunction, EachFunction, ForEachOptions, P
 export type * from './types.js';
 export default class StackBaseIterator<T> implements AsyncIterator<T> {
   protected done: boolean;
-  protected stack: DefaultFunction[];
-  protected queued: DefaultFunction[];
-  protected processors: DefaultFunction[];
-  protected processing: DefaultFunction[];
+  protected stack: LinkedList<DefaultFunction>;
+  protected queued: LinkedList<DefaultFunction>;
+  protected processors: LinkedList<DefaultFunction>;
+  protected processing: LinkedList<DefaultFunction>;
 
   protected options: StackOptions;
-  protected entries: T[];
+  protected entries: LinkedList<T>;
   protected destroyed: boolean;
 
   constructor(options: StackOptions = {}) {
@@ -29,11 +28,11 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       };
 
     this.done = false;
-    this.stack = FIFO<T>() as unknown as DefaultFunction[];
-    this.queued = FIFO() as unknown as DefaultFunction[];
-    this.processors = FIFO() as unknown as DefaultFunction[];
-    this.processing = FIFO() as unknown as DefaultFunction[];
-    this.entries = FIFO() as unknown as T[];
+    this.stack = new LinkedList<DefaultFunction>();
+    this.queued = new LinkedList<DefaultFunction>();
+    this.processors = new LinkedList<DefaultFunction>();
+    this.processing = new LinkedList<DefaultFunction>();
+    this.entries = new LinkedList<T>();
   }
 
   isDone() {
@@ -86,7 +85,7 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
       };
 
       let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
-        if (!this.destroyed) fifoRemove<DefaultFunction>(this.processors as unknown as FIFO<DefaultFunction>, processor);
+        if (!this.destroyed) this.processors.remove(processor);
         processor = null;
         options = null;
         const done = !this.stack.length;
