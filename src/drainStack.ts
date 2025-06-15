@@ -6,7 +6,7 @@ function canProcess<T>(iterator: AbstractIterator<T>): boolean {
   if (iterator.done || !iterator.stack.length) return false;
   if (iterator.queued.length) return true;
   if (iterator.processors.length <= 0) return false;
-  iterator.processors.first()(false);
+  iterator.processors.last()(false);
   if (iterator.done) return false;
   return iterator.queued.length > 0;
 }
