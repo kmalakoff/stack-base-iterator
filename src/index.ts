@@ -7,6 +7,8 @@ import processOrQueue from './processOrQueue.js';
 
 import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, NextCallback, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
 
+const isArray = Array.isArray || ((x) => Object.prototype.toString.call(x) === '[object Array]');
+
 export type * from './types.js';
 export { default as LinkedList } from './LinkedList.js';
 export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterator<T, TReturn, TNext> {
@@ -40,9 +42,12 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     return this.done;
   }
 
-  push(fn: StackFunction<T>) {
+  push(fn: StackFunction<T> | StackFunction<T>[]) {
     if (this.done) return console.log('Attempting to push on a done iterator');
-    this.stack.push(fn);
+
+    if (isArray(fn)) Array.prototype.push.apply(this.stack, fn);
+    else this.stack.push(fn as StackFunction<T>);
+
     drainStack<T>(this as unknown as AbstractIterator<T>);
   }
 
