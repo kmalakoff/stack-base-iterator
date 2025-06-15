@@ -1,9 +1,9 @@
 import FIFO from 'fifo';
 
-export default class LinkedList<T>  {
+export default class LinkedList<T> {
   private fifo = new FIFO<T>();
 
-  get length() { 
+  get length() {
     return this.fifo.length;
   }
   last(): T {
