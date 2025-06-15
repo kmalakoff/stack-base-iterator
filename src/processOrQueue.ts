@@ -12,7 +12,7 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
 
   // nothing to process so queue
   if (!iterator.stack.length) {
-    iterator.queued.unshift(callback);
+    iterator.queued.push(callback);
     return;
   }
 
@@ -23,7 +23,8 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
     // break call stack
     asap(() => {
       // done is based on stack being empty and not error state as the user may choose to skip the error
-      iterator.processing.removeValue(callback);
+      debugger;
+      iterator.processing.remove(callback);
       if (iterator.done) return callback(null, null); // early exit
       if (err && compat.defaultValue(iterator.options.error(err), true)) err = null; // skip error
 

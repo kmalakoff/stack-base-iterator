@@ -11,9 +11,9 @@ export type * from './types.js';
 export { default as LinkedList } from './LinkedList.js';
 export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterator<T, TReturn, TNext> {
   protected done: boolean;
-  protected stack: LinkedList<StackFunction<T>>;
+  protected stack: StackFunction<T>[];
+  protected queued: ProcessCallback<T>[];
   protected processors: LinkedList<Processor>;
-  protected queued: LinkedList<ProcessCallback<T>>;
   protected processing: LinkedList<ProcessCallback<T>>;
 
   protected options: StackOptions;
@@ -29,9 +29,9 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       };
 
     this.done = false;
-    this.stack = new LinkedList<StackFunction<T>>();
+    this.stack = new Array<StackFunction<T>>();
+    this.queued = new Array<ProcessCallback<T>>();
     this.processors = new LinkedList<Processor>();
-    this.queued = new LinkedList<ProcessCallback<T>>();
     this.processing = new LinkedList<ProcessCallback<T>>();
     this.entries = new LinkedList<T>();
   }
@@ -100,7 +100,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       };
 
       let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
-        if (!this.destroyed) this.processors.removeValue(processor);
+        if (!this.destroyed) this.processors.remove(processor);
         processor = null;
         options = null;
         const done = !this.stack.length;
