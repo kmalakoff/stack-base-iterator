@@ -5,11 +5,11 @@ import createProcesor from './createProcessor.js';
 import drainStack from './drainStack.js';
 import processOrQueue from './processOrQueue.js';
 
-import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
+import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, NextCallback, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
 
 export type * from './types.js';
 export { default as LinkedList } from './LinkedList.js';
-export default class StackBaseIterator<T> implements AsyncIterator<T> {
+export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterator<T, TReturn, TNext> {
   protected done: boolean;
   protected stack: LinkedList<StackFunction<T>>;
   protected processors: LinkedList<Processor>;
@@ -46,15 +46,25 @@ export default class StackBaseIterator<T> implements AsyncIterator<T> {
     drainStack<T>(this as unknown as AbstractIterator<T>);
   }
 
-  next(...[value]: [] | [unknown]): Promise<IteratorResult<T, unknown>> {
-    const callback = value as ProcessCallback<T>;
+  next(...[value]: [] | [TNext]): Promise<IteratorResult<T, TReturn>> {
+    const callback = value as NextCallback<T>;
     if (typeof callback === 'function') {
-      processOrQueue(this as unknown as AbstractIterator<T>, once(callback) as ProcessCallback<T>);
+      processOrQueue(
+        this as unknown as AbstractIterator<T>,
+        once((err?: Error, value?: T | null) => {
+          err ? callback(err) : callback(null, value);
+        }) as ProcessCallback<T>
+      );
       return;
     }
 
     return new Promise((resolve, reject) => {
-      this.next((err, result) => (err ? reject(err) : resolve(result)));
+      processOrQueue(
+        this as unknown as AbstractIterator<T>,
+        once((err, value: T) => {
+          err ? reject(err) : resolve({ value, done: value === null } as IteratorResult<T, TReturn>);
+        }) as ProcessCallback<T>
+      );
     });
   }
 
@@ -128,12 +138,12 @@ if (typeof Symbol !== 'undefined' && Symbol.asyncIterator) {
   StackBaseIterator.prototype[Symbol.asyncIterator] = function asyncIterator() {
     const self = this;
     return {
-      next: function next() {
-        return self.next().then(function nextCallback(value) {
-          return Promise.resolve({ value: value, done: value === null });
+      next() {
+        return self.next().then((value) => {
+          return Promise.resolve(value);
         });
       },
-      destroy: function destroy() {
+      destroy() {
         self.destroy();
         return Promise.resolve();
       },
