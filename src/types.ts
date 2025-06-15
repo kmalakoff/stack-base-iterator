@@ -36,9 +36,9 @@ export type StackFunction<T> = (iterator: AbstractIterator<T>, callback: ValueCa
 
 export interface AbstractIterator<T> {
   done: boolean;
-  stack: LinkedList<StackFunction<T>>;
+  stack: StackFunction<T>[];
+  queued: ProcessCallback<T>[];
   processors: LinkedList<Processor>;
-  queued: LinkedList<ProcessCallback<T>>;
   processing: LinkedList<ProcessCallback<T>>;
   options: StackOptions;
   end: () => undefined;
