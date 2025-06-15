@@ -1,11 +1,12 @@
 import type LinkedList from './LinkedList.js';
 
 export type ProcessCallback<T> = (error?: Error, value?: T | null) => undefined;
+export type NextCallback<T> = (error?: Error, value?: T | null) => undefined;
 export type Processor = (doneOrError?: Error | boolean) => undefined;
 
 export type EachDoneCallback = (error?: Error, value?: boolean) => undefined;
 export type EachCallback<T> = (value: T, callback: EachDoneCallback) => undefined;
-export type EachPromise<T> = (value: T) => Promise<boolean>;
+export type EachPromise<T> = (value: T) => Promise<boolean | undefined>;
 export type EachFunction<T> = EachCallback<T> | EachPromise<T>;
 
 export type ValueCallback<T> = (error?: Error, value?: T) => boolean;

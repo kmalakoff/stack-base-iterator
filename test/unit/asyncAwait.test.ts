@@ -23,8 +23,8 @@ describe('asyncAwait', () => {
       const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
       const results: number[] = [];
       let value = await iterator.next();
-      while (value) {
-        results.push(value);
+      while (!value.done) {
+        results.push(value.value);
         value = await iterator.next();
       }
 
