@@ -1,8 +1,7 @@
 import once from 'call-once-fn';
 import LinkedList from './LinkedList.js';
 
-import createProcesor from './createProcessor.js';
-import drainStack from './drainStack.js';
+import { createProcessor } from 'maximize-iterator';
 import processOrQueue from './processOrQueue.js';
 
 import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, NextCallback, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
@@ -17,7 +16,6 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   protected processing: LinkedList<ProcessCallback<T>>;
 
   protected options: StackOptions;
-  protected entries: LinkedList<T>;
   protected destroyed: boolean;
 
   constructor(options: StackOptions = {}) {
@@ -33,7 +31,6 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.queued = new Array<ProcessCallback<T>>();
     this.processors = new LinkedList<Processor>();
     this.processing = new LinkedList<ProcessCallback<T>>();
-    this.entries = new LinkedList<T>();
   }
 
   isDone() {
@@ -44,7 +41,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(fn);
     !rest.length || rest.forEach((x) => this.stack.push(x));
-    drainStack<T>(this as unknown as AbstractIterator<T>);
+    this.pump();
   }
 
   next(...[value]: [] | [TNext]): Promise<IteratorResult<T, TReturn>> {
@@ -99,7 +96,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         },
       };
 
-      let processor = createProcesor<T>(this.next.bind(this), processorOptions, (err) => {
+      let processor = createProcessor<T>(this.next.bind(this), processorOptions, (err) => {
         if (!this.destroyed) this.processors.remove(processor);
         processor = null;
         options = null;
@@ -108,7 +105,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         return callback(err, this.done || done);
       });
       this.processors.push(processor);
-      processor();
+      this.pump();
       return;
     }
 
@@ -126,6 +123,14 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     while (this.processing.length > 0) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
     while (this.queued.length > 0) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
     while (this.stack.length > 0) this.stack.pop();
+  }
+
+  pump() {
+    if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
+    while (this.stack.length > 0 && this.queued.length > 0) {
+      processOrQueue(this as unknown as AbstractIterator<T>, this.queued.pop());
+      if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
+    }
   }
 
   destroy(err?: Error) {
