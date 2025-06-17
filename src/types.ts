@@ -6,7 +6,7 @@ export interface StackOptions {
   error?: (err: NodeJS.ErrnoException) => boolean;
 }
 
-export type ValueCallback<T> = (error?: Error, value?: T) => boolean;
+export type ValueCallback<T, TReturn = unknown> = (error?: Error, value?: IteratorResult<T, TReturn> | undefined) => undefined;
 export type StackFunction<T> = (iterator: AbstractIterator<T>, callback: ValueCallback<T>) => void;
 
 export interface AbstractIterator<T> {
