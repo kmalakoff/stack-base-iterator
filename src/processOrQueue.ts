@@ -1,12 +1,10 @@
 import compat from 'async-compat';
 
-import asap from 'asap';
-
 import type { AbstractIterator, ProcessCallback } from './types.js';
 
-export default function processOrQueue<T>(iterator: AbstractIterator<T>, callback: ProcessCallback<T>): undefined {
+export default function processOrQueue<T, TReturn>(iterator: AbstractIterator<T>, callback: ProcessCallback<T>): undefined {
   if (iterator.done) {
-    callback(null, null);
+    callback(null, { done: true, value: null });
     return;
   }
 
@@ -19,16 +17,25 @@ export default function processOrQueue<T>(iterator: AbstractIterator<T>, callbac
   // process next
   const next = iterator.stack.pop();
   iterator.processing.push(callback);
-  next(iterator, (err?: Error, result?: T): undefined => {
-    // break call stack
-    asap(() => {
-      iterator.processing.remove(callback);
-      if (iterator.done) return callback(null, null); // early exit
-      if (err && compat.defaultValue(iterator.options.error(err), true)) err = null; // skip error
+  next(iterator, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): undefined => {
+    iterator.processing.remove(callback);
 
-      const done = iterator.stack.length === 0 && iterator.processing.length === 0;
-      !done && !err && !result ? processOrQueue<T>(iterator, callback) : callback(err, result || null);
-      if (done && !iterator.done) iterator.end(); // end
-    });
+    // done
+    if (iterator.done)
+      return callback(null, {
+        done: true,
+        value: null,
+      });
+
+    // skip error
+    if (err && compat.defaultValue(iterator.options.error(err), true)) err = null;
+
+    // handle callback
+    if (err) callback(err);
+    else if (!result) processOrQueue(iterator, callback);
+    else callback(null, result);
+
+    // done
+    if (iterator.stack.length === 0 && iterator.processing.length === 0 && !iterator.done) iterator.end(); // end
   });
 }

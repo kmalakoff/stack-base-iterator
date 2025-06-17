@@ -1,14 +1,19 @@
 import once from 'call-once-fn';
+import nextCallback from 'iterator-next-callback';
+import Pinkie from 'pinkie-promise';
 import LinkedList from './LinkedList.js';
 
 import { createProcessor } from 'maximize-iterator';
 import processOrQueue from './processOrQueue.js';
 
-import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, NextCallback, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
+import type { AbstractIterator, EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackFunction, StackOptions } from './types.js';
+
+// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
+const Symbol: SymbolConstructor = typeof global.Symbol === 'undefined' ? ({ asyncIterator: '@@' } as unknown as SymbolConstructor) : global.Symbol;
 
 export type * from './types.js';
 export { default as LinkedList } from './LinkedList.js';
-export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterator<T, TReturn, TNext> {
+export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterableIterator<T, TReturn, TNext> {
   protected done: boolean;
   protected stack: StackFunction<T>[];
   protected queued: ProcessCallback<T>[];
@@ -44,29 +49,22 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.pump();
   }
 
-  next(...[value]: [] | [TNext]): Promise<IteratorResult<T, TReturn>> {
-    const callback = value as NextCallback<T>;
-    if (typeof callback === 'function') {
-      processOrQueue(
+  next(): Promise<IteratorResult<T, TReturn>> {
+    return new Pinkie((resolve, reject) => {
+      processOrQueue<T, TReturn>(
         this as unknown as AbstractIterator<T>,
-        once((err?: Error, value?: T | null) => {
-          err ? callback(err) : callback(null, value);
-        }) as ProcessCallback<T>
-      );
-      return;
-    }
-
-    return new Promise((resolve, reject) => {
-      processOrQueue(
-        this as unknown as AbstractIterator<T>,
-        once((err, value: T) => {
-          err ? reject(err) : resolve({ value, done: value === null } as IteratorResult<T, TReturn>);
+        once((err, result: IteratorResult<T, TReturn>) => {
+          err ? reject(err) : resolve(result);
         }) as ProcessCallback<T>
       );
     });
   }
 
-  forEach(fn: EachFunction<T>, options?: ForEachOptions | ProcessCallback<T>, callback?: EachDoneCallback): undefined | Promise<boolean> {
+  [Symbol.asyncIterator](): AsyncIterableIterator<T, TReturn, TNext> {
+    return this;
+  }
+
+  forEach(fn: EachFunction<T>, options?: ForEachOptions | EachDoneCallback, callback?: EachDoneCallback): undefined | Promise<boolean> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
       callback = options as EachDoneCallback;
@@ -91,12 +89,12 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
           },
         total: 0,
         counter: 0,
-        stop: () => {
-          return this.done || this.queued.length >= this.stack.length;
+        canProcess: () => {
+          return !this.done && this.stack.length > 0 && this.queued.length < this.stack.length;
         },
       };
 
-      let processor = createProcessor<T>(this.next.bind(this), processorOptions, (err) => {
+      let processor = createProcessor<T>(nextCallback<T, TReturn, TNext>(this), processorOptions, (err) => {
         if (!this.destroyed) this.processors.remove(processor);
         processor = null;
         options = null;
@@ -120,15 +118,15 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     if (this.done) return;
     this.done = true;
     while (this.processors.length > 0) this.processors.pop()(err || true);
-    while (this.processing.length > 0) err ? this.processing.pop()(err) : this.processing.pop()(null, null);
-    while (this.queued.length > 0) err ? this.queued.pop()(err) : this.queued.pop()(null, null);
+    while (this.processing.length > 0) err ? this.processing.pop()(err) : this.processing.pop()(null, { done: true, value: null });
+    while (this.queued.length > 0) err ? this.queued.pop()(err) : this.queued.pop()(null, { done: true, value: null });
     while (this.stack.length > 0) this.stack.pop();
   }
 
   pump() {
     if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
     while (this.stack.length > 0 && this.queued.length > 0) {
-      processOrQueue(this as unknown as AbstractIterator<T>, this.queued.pop());
+      processOrQueue<T, TReturn>(this as unknown as AbstractIterator<T>, this.queued.pop());
       if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
     }
   }
@@ -138,21 +136,4 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.destroyed = true;
     this.end(err);
   }
-}
-
-if (typeof Symbol !== 'undefined' && Symbol.asyncIterator) {
-  StackBaseIterator.prototype[Symbol.asyncIterator] = function asyncIterator() {
-    const self = this;
-    return {
-      next() {
-        return self.next().then((value) => {
-          return Promise.resolve(value);
-        });
-      },
-      destroy() {
-        self.destroy();
-        return Promise.resolve();
-      },
-    };
-  };
 }
