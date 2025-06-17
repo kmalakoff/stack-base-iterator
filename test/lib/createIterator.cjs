@@ -5,11 +5,11 @@ module.exports = function create(entries) {
   iterator.entries = entries.slice();
 
   const next = (iterator, callback) => {
-    if (iterator.done || !iterator.entries.length) return callback(null, null);
+    if (iterator.done || !iterator.entries.length) return callback(null, { done: true, value: null });
 
     // keep going
     iterator.push(next);
-    callback(null, iterator.entries.shift());
+    callback(null, { done: false, value: iterator.entries.shift() });
   };
   iterator.push(next);
   return iterator;
