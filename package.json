@@ -1,6 +1,6 @@
 {
   "name": "stack-base-iterator",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Base iterator for values retrieved using a stack of async functions returning values",
   "keywords": [
     "stack",
