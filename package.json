@@ -37,9 +37,9 @@
     "version": "tsds version"
   },
   "dependencies": {
-    "async-compat": "^1.6.14",
-    "iterator-next-callback": "^2.0.1",
-    "maximize-iterator": "^4.0.2",
+    "async-compat": "^1.6.15",
+    "iterator-next-callback": "^2.0.2",
+    "maximize-iterator": "^4.0.3",
     "pinkie-promise": "^2.0.1"
   },
   "devDependencies": {
