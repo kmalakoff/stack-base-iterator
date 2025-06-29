@@ -8,8 +8,9 @@ import type { EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, P
 
 export type StackFunction<T, TReturn = unknown, TNext = unknown> = (iterator: StackBaseIterator<T, TReturn, TNext>, callback: ValueCallback<T>) => void;
 
+const root = typeof window === 'undefined' ? global : window;
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Legacy
-const Symbol: SymbolConstructor = typeof global.Symbol === 'undefined' ? ({ asyncIterator: undefined } as unknown as SymbolConstructor) : global.Symbol;
+const Symbol: SymbolConstructor = typeof root.Symbol === 'undefined' ? ({ asyncIterator: undefined } as unknown as SymbolConstructor) : root.Symbol;
 
 export { default as LinkedList } from './LinkedList.ts';
 export type * from './types.ts';
