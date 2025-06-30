@@ -164,10 +164,13 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
       // handle callback
       if (err) callback(err);
+      // queue again
       else if (!result) {
         this.queued.push(callback);
         Pinkie.resolve().then(() => this._pump()); // Added to microtask queue to start new call stack
-      } else callback(null, result);
+      }
+      // return the result
+      else callback(null, result);
 
       // done
       if (this.stack.length === 0 && this.processing.length === 0 && !this.done) this.end(); // end
