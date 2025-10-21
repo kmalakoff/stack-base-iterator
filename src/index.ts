@@ -46,7 +46,10 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   push(fn: StackFunction<T, TReturn, TNext>, ...rest: StackFunction<T, TReturn, TNext>[]) {
     if (this.done) return console.log('Attempting to push on a done iterator');
     this.stack.push(fn);
-    !rest.length || rest.forEach((x) => this.stack.push(x));
+    !rest.length ||
+      rest.forEach((x) => {
+        this.stack.push(x);
+      });
     this._pump();
   }
 
