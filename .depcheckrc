@@ -1,1 +1,1 @@
-ignores: ["stack-base-iterator"]
+ignores: ["node-version-use", "ts-dev-stack", "@biomejs/biome", "stack-base-iterator"]
