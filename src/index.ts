@@ -23,6 +23,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
   protected options: StackOptions;
   protected destroyed: boolean;
+  private flushing: boolean;
 
   constructor(options: StackOptions = {}) {
     this.options = { ...options };
@@ -37,6 +38,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.queued = [] as ProcessCallback<T>[];
     this.processors = new LinkedList<Processor>();
     this.processing = new LinkedList<ProcessCallback<T>>();
+    this.flushing = false;
   }
 
   isDone() {
@@ -130,11 +132,18 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   }
 
   private _pump() {
+    // Flush loop pattern: if already flushing, the outer loop will handle new work
+    // This prevents stack overflow by avoiding recursion entirely
+    if (this.flushing) return;
+    this.flushing = true;
+
     if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
     while (this.stack.length > 0 && this.queued.length > 0) {
       this._processOrQueue(this.queued.pop());
       if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
     }
+
+    this.flushing = false;
   }
 
   private _processOrQueue(callback: ProcessCallback<T>): undefined {
