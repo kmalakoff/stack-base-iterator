@@ -13,7 +13,7 @@ describe('exports .cjs', () => {
       { callbacks: true, concurrency: 1 },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
