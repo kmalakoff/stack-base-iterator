@@ -170,8 +170,8 @@ describe('performance', () => {
           defer(() => {
             // Push more work - this keeps the iterator alive
             // Note: stack is LIFO, so push 5 first to get order 4, 5
-            iterator.push((iter, cb) => cb(null, { done: false, value: 5 }));
-            iterator.push((iter, cb) => cb(null, { done: false, value: 4 }));
+            iterator.push((_iter, cb) => cb(null, { done: false, value: 5 }));
+            iterator.push((_iter, cb) => cb(null, { done: false, value: 4 }));
           });
         }
         callback();
