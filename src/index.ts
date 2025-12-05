@@ -9,6 +9,10 @@ import type { EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, P
 export type StackFunction<T, TReturn = unknown, TNext = unknown> = (iterator: StackBaseIterator<T, TReturn, TNext>, callback: ValueCallback<T>) => void;
 
 const root = typeof window === 'undefined' ? global : window;
+
+// Cross-platform async scheduler (Node 0.8+ compatible)
+// setImmediate is preferred (Node 0.10+), falls back to setTimeout for Node 0.8
+const defer = typeof setImmediate === 'function' ? setImmediate : (fn: () => void) => setTimeout(fn, 0);
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Legacy
 const Symbol: SymbolConstructor = typeof root.Symbol === 'undefined' ? ({ asyncIterator: undefined } as unknown as SymbolConstructor) : root.Symbol;
 
@@ -24,6 +28,8 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   protected options: StackOptions;
   protected destroyed: boolean;
   private flushing: boolean;
+  private pending: number;
+  private endScheduled: boolean;
 
   constructor(options: StackOptions = {}) {
     this.options = { ...options };
@@ -39,6 +45,8 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.processors = new LinkedList<Processor>();
     this.processing = new LinkedList<ProcessCallback<T>>();
     this.flushing = false;
+    this.pending = 0;
+    this.endScheduled = false;
   }
 
   isDone() {
@@ -97,13 +105,22 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         },
       };
 
+      let callbackFired = false;
       let processor = createProcessor<T>(nextCallback<T, TReturn, TNext>(this), processorOptions, (err) => {
-        if (!this.destroyed) this.processors.remove(processor);
-        processor = null;
-        options = null;
-        const done = !this.stack.length;
-        if ((err || done) && !this.done) this.end(err);
-        return callback(err, this.done || done);
+        // Guard against double callback (can happen if end() is called while microtask is pending)
+        if (callbackFired) return;
+        callbackFired = true;
+
+        // Defer completion decision AND processor removal to give deferred work a chance to push
+        // Processor must stay in list so _pump() can signal it to process new items
+        defer(() => {
+          if (!this.destroyed) this.processors.remove(processor);
+          processor = null;
+          options = null;
+          const done = !this.stack.length && this.pending === 0;
+          if ((err || done) && !this.done) this.end(err);
+          callback(err, this.done || done);
+        });
       });
       this.processors.push(processor);
       this._pump();
@@ -146,6 +163,20 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.flushing = false;
   }
 
+  private _scheduleEndCheck() {
+    // Defer end check to give other deferred work a chance to push
+    if (this.endScheduled || this.done) return;
+    this.endScheduled = true;
+
+    defer(() => {
+      this.endScheduled = false;
+      // Re-check ALL conditions after deferral
+      if (this.stack.length === 0 && this.processing.length === 0 && this.pending === 0 && !this.done) {
+        this.end();
+      }
+    });
+  }
+
   private _processOrQueue(callback: ProcessCallback<T>): undefined {
     if (this.done) {
       callback(null, { done: true, value: null });
@@ -161,7 +192,9 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     // process next
     const next = this.stack.pop();
     this.processing.push(callback);
+    this.pending++;
     next(this, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): undefined => {
+      this.pending--;
       this.processing.remove(callback);
 
       // done
@@ -179,13 +212,16 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       // queue again
       else if (!result) {
         this.queued.push(callback);
-        Pinkie.resolve().then(() => this._pump()); // Added to microtask queue to start new call stack
+        defer(() => this._pump()); // Deferred to start new call stack
       }
       // return the result
       else callback(null, result);
 
-      // done
-      if (this.stack.length === 0 && this.processing.length === 0 && !this.done) this.end(); // end
+      // Only schedule end check when we might actually be done
+      // This prevents premature end checks from earlier items
+      if (this.stack.length === 0 && this.processing.length === 0 && this.pending === 0) {
+        this._scheduleEndCheck();
+      }
     });
   }
 }
