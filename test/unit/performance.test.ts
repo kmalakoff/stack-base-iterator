@@ -4,6 +4,10 @@ import createIterator from '../lib/createIterator.cjs';
 
 const MAX_STACK = 100000;
 
+// Cross-platform async scheduler (Node 0.8+ compatible)
+// setImmediate is preferred (Node 0.10+), falls back to setTimeout for Node 0.8
+const defer = typeof setImmediate === 'function' ? setImmediate : (fn: () => void) => setTimeout(fn, 0);
+
 // Node 0.8 compatible array creation
 function range(n: number): number[] {
   const arr: number[] = [];
@@ -35,7 +39,7 @@ describe('performance', () => {
       { callbacks: true, concurrency: 1 },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         assert.equal(results.length, MAX_STACK);
@@ -58,7 +62,7 @@ describe('performance', () => {
       { callbacks: true, concurrency: 10 },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         assert.equal(results.length, MAX_STACK);
@@ -83,7 +87,7 @@ describe('performance', () => {
       { callbacks: true, concurrency: Infinity },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         assert.equal(results.length, MAX_STACK);
@@ -103,7 +107,7 @@ describe('performance', () => {
       { callbacks: true, concurrency: 1 },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         // Order must be preserved exactly
@@ -140,7 +144,7 @@ describe('performance', () => {
       { callbacks: true, concurrency: 1 },
       (err) => {
         if (err) {
-          done(err.message);
+          done(err);
           return;
         }
         // Order must be preserved exactly even across trampoline yields
@@ -150,8 +154,59 @@ describe('performance', () => {
     );
   });
 
-  // NOTE: "Missed window" scenario is a known limitation.
-  // Work pushed via microtask during the last forEach callback may not be processed
-  // because the processor determines completion synchronously.
-  // Fixing this would require changes to maximize-iterator or accepting async forEach callbacks.
+  it('deferred push during callback keeps iterator alive', (done) => {
+    // This tests the "missed window" fix - deferred work that pushes items
+    // prevents the iterator from ending, allowing a subsequent forEach to process them
+    const results: number[] = [];
+    const iterator = createIterator([1, 2, 3]);
+    let deferredPushed = false;
+
+    iterator.forEach(
+      (value, callback) => {
+        results.push(value);
+        // When we process the last item (3), schedule deferred work to push more
+        if (value === 3 && !deferredPushed) {
+          deferredPushed = true;
+          defer(() => {
+            // Push more work - this keeps the iterator alive
+            // Note: stack is LIFO, so push 5 first to get order 4, 5
+            iterator.push((iter, cb) => cb(null, { done: false, value: 5 }));
+            iterator.push((iter, cb) => cb(null, { done: false, value: 4 }));
+          });
+        }
+        callback();
+      },
+      { callbacks: true, concurrency: 1 },
+      (err, isDone) => {
+        if (err) {
+          done(err);
+          return;
+        }
+        // First forEach processes items 1, 2, 3
+        assert.deepEqual(results, [1, 2, 3]);
+        // Iterator should NOT be done (items were pushed)
+        assert.equal(isDone, false);
+        assert.equal(iterator.isDone(), false);
+
+        // Second forEach processes the remaining items
+        iterator.forEach(
+          (value, callback) => {
+            results.push(value);
+            callback();
+          },
+          { callbacks: true, concurrency: 1 },
+          (err2, isDone2) => {
+            if (err2) {
+              done(err2.message);
+              return;
+            }
+            // Now all 5 items should be processed (LIFO order: 4 then 5)
+            assert.deepEqual(results, [1, 2, 3, 4, 5]);
+            assert.equal(isDone2, true);
+            done();
+          }
+        );
+      }
+    );
+  });
 });
