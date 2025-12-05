@@ -33,7 +33,7 @@ describe('iterator', () => {
         { callbacks: true, concurrency: 1 },
         (err) => {
           if (err) {
-            done(err.message);
+            done(err);
             return;
           }
           assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -53,7 +53,7 @@ describe('iterator', () => {
         { callbacks: true, concurrency: Infinity },
         (err) => {
           if (err) {
-            done(err.message);
+            done(err);
             return;
           }
           assert.deepEqual(
