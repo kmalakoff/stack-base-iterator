@@ -193,7 +193,15 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     const next = this.stack.pop();
     this.processing.push(callback);
     this.pending++;
+    let callbackFired = false;
     next(this, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): undefined => {
+      // Guard against callback being called multiple times (buggy iterators)
+      if (callbackFired) {
+        console.warn('stack-base-iterator: callback called multiple times - this indicates a bug in the iterator implementation');
+        return;
+      }
+      callbackFired = true;
+
       this.pending--;
       this.processing.remove(callback);
 

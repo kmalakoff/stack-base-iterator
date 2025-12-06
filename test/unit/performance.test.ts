@@ -154,6 +154,73 @@ describe('performance', () => {
     );
   });
 
+  it('forEach with promise mode (no callbacks) completes', (done) => {
+    // This tests the pattern used by tar-iterator, zip-iterator, etc.
+    // forEach uses promise mode (no callbacks: true) - sync processing
+    const results: number[] = [];
+    const iterator = createIterator([1, 2, 3, 4, 5]);
+
+    iterator.forEach(
+      (value) => {
+        results.push(value);
+        // Promise mode - sync return, no callback
+      },
+      { concurrency: 1 },
+      (err, isDone) => {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.deepEqual(results, [1, 2, 3, 4, 5]);
+        assert.equal(isDone, true);
+        done();
+      }
+    );
+  });
+
+  it('handles next callback called multiple times (buggy iterator)', (done) => {
+    // This tests robustness against buggy iterators that call callbacks twice
+    // (like tar-iterator's nextEntry which has onEnd/onError not wrapped in once())
+    const results: number[] = [];
+    const iterator = createIterator([]);
+
+    // Simulate tar-iterator pattern: each entry pushes the next entry getter
+    // and calls callback with its value. Buggy behavior: callback called twice.
+    function pushEntry(value: number, isLast: boolean) {
+      iterator.push((_iter, cb) => {
+        // Push next entry before calling callback (like tar-iterator does)
+        if (!isLast) {
+          pushEntry(value + 1, value + 1 >= 3);
+        }
+        // First call - return the value
+        cb(null, { done: false, value: value });
+        // Second call - simulating onEnd/onError firing after onEntry
+        // This should be ignored, not cause pending to go negative
+        cb(null, { done: true, value: null });
+      });
+    }
+    // Start with first entry
+    pushEntry(1, false);
+
+    iterator.forEach(
+      (value) => {
+        results.push(value);
+      },
+      { concurrency: 1 },
+      (err, isDone) => {
+        if (err) {
+          done(err);
+          return;
+        }
+        assert.deepEqual(results, [1, 2, 3]);
+        assert.equal(isDone, true);
+        // pending should never go negative
+        assert.ok(iterator.pending >= 0, `pending went negative: ${iterator.pending}`);
+        done();
+      }
+    );
+  });
+
   it('deferred push during callback keeps iterator alive', (done) => {
     // This tests the "missed window" fix - deferred work that pushes items
     // prevents the iterator from ending, allowing a subsequent forEach to process them
@@ -170,8 +237,8 @@ describe('performance', () => {
           defer(() => {
             // Push more work - this keeps the iterator alive
             // Note: stack is LIFO, so push 5 first to get order 4, 5
-            iterator.push((iter, cb) => cb(null, { done: false, value: 5 }));
-            iterator.push((iter, cb) => cb(null, { done: false, value: 4 }));
+            iterator.push((_iter, cb) => cb(null, { done: false, value: 5 }));
+            iterator.push((_iter, cb) => cb(null, { done: false, value: 4 }));
           });
         }
         callback();
