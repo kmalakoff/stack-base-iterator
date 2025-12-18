@@ -4,10 +4,6 @@ import createIterator from '../lib/createIterator.cjs';
 
 const MAX_STACK = 100000;
 
-// Cross-platform async scheduler (Node 0.8+ compatible)
-// setImmediate is preferred (Node 0.10+), falls back to setTimeout for Node 0.8
-const defer = typeof setImmediate === 'function' ? setImmediate : (fn: () => void) => setTimeout(fn, 0);
-
 // Node 0.8 compatible array creation
 function range(n: number): number[] {
   const arr: number[] = [];
@@ -234,12 +230,12 @@ describe('performance', () => {
         // When we process the last item (3), schedule deferred work to push more
         if (value === 3 && !deferredPushed) {
           deferredPushed = true;
-          defer(() => {
+          setTimeout(() => {
             // Push more work - this keeps the iterator alive
             // Note: stack is LIFO, so push 5 first to get order 4, 5
             iterator.push((_iter, cb) => cb(null, { done: false, value: 5 }));
             iterator.push((_iter, cb) => cb(null, { done: false, value: 4 }));
-          });
+          }, 0);
         }
         callback();
       },

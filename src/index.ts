@@ -10,9 +10,6 @@ export type StackFunction<T, TReturn = unknown, TNext = unknown> = (iterator: St
 
 const root = typeof window === 'undefined' ? global : window;
 
-// Cross-platform async scheduler (Node 0.8+ compatible)
-// setImmediate is preferred (Node 0.10+), falls back to setTimeout for Node 0.8
-const defer = typeof setImmediate === 'function' ? setImmediate : (fn: () => void) => setTimeout(fn, 0);
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Legacy
 const Symbol: SymbolConstructor = typeof root.Symbol === 'undefined' ? ({ asyncIterator: undefined } as unknown as SymbolConstructor) : root.Symbol;
 
@@ -75,7 +72,10 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     return this;
   }
 
-  forEach(fn: EachFunction<T>, options?: ForEachOptions | EachDoneCallback, callback?: EachDoneCallback): undefined | Promise<boolean> {
+  forEach(fn: EachFunction<T>, callback: EachDoneCallback): void;
+  forEach(fn: EachFunction<T>, options: ForEachOptions, callback: EachDoneCallback): void;
+  forEach(fn: EachFunction<T>, options?: ForEachOptions): Promise<boolean>;
+  forEach(fn: EachFunction<T>, options?: ForEachOptions | EachDoneCallback, callback?: EachDoneCallback): void | Promise<boolean> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
     if (typeof options === 'function') {
       callback = options as EachDoneCallback;
@@ -83,10 +83,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     }
 
     if (typeof callback === 'function') {
-      if (this.done) {
-        callback(null, true);
-        return;
-      }
+      if (this.done) return callback(null, true);
       options = options || {};
       const processorOptions: ProcessorOptions<T> = {
         each: fn,
@@ -113,14 +110,14 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
         // Defer completion decision AND processor removal to give deferred work a chance to push
         // Processor must stay in list so _pump() can signal it to process new items
-        defer(() => {
+        setTimeout(() => {
           if (!this.destroyed) this.processors.remove(processor);
           processor = null;
           options = null;
           const done = !this.stack.length && this.pending === 0;
           if ((err || done) && !this.done) this.end(err);
           callback(err, this.done || done);
-        });
+        }, 0);
       });
       this.processors.push(processor);
       this._pump();
@@ -128,7 +125,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     }
 
     return new Promise((resolve, reject) =>
-      this.forEach(fn, options, (err?: Error, done?: boolean) => {
+      this.forEach(fn, options as ForEachOptions, (err?: Error, done?: boolean) => {
         err ? reject(err) : resolve(done);
       })
     );
@@ -168,20 +165,17 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     if (this.endScheduled || this.done) return;
     this.endScheduled = true;
 
-    defer(() => {
+    setTimeout(() => {
       this.endScheduled = false;
       // Re-check ALL conditions after deferral
       if (this.stack.length === 0 && this.processing.length === 0 && this.pending === 0 && !this.done) {
         this.end();
       }
-    });
+    }, 0);
   }
 
-  private _processOrQueue(callback: ProcessCallback<T>): undefined {
-    if (this.done) {
-      callback(null, { done: true, value: null });
-      return;
-    }
+  private _processOrQueue(callback: ProcessCallback<T>): void {
+    if (this.done) return callback(null, { done: true, value: null });
 
     // nothing to process so queue
     if (this.stack.length === 0) {
@@ -194,7 +188,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.processing.push(callback);
     this.pending++;
     let callbackFired = false;
-    next(this, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): undefined => {
+    next(this, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): void => {
       // Guard against callback being called multiple times (buggy iterators)
       if (callbackFired) {
         console.warn('stack-base-iterator: callback called multiple times - this indicates a bug in the iterator implementation');
@@ -220,7 +214,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       // queue again
       else if (!result) {
         this.queued.push(callback);
-        defer(() => this._pump()); // Deferred to start new call stack
+        setTimeout(() => this._pump(), 0); // Deferred to start new call stack
       }
       // return the result
       else callback(null, result);

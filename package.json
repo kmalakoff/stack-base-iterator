@@ -40,8 +40,8 @@
   },
   "dependencies": {
     "async-compat": "^1.4.6",
-    "iterator-next-callback": "^2.1.0",
-    "maximize-iterator": "^4.0.1",
+    "iterator-next-callback": "^3.0.0",
+    "maximize-iterator": "^5.0.1",
     "pinkie-promise": "^2.0.1"
   },
   "devDependencies": {
