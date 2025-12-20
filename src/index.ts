@@ -77,14 +77,11 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   forEach(fn: EachFunction<T>, options?: ForEachOptions): Promise<boolean>;
   forEach(fn: EachFunction<T>, options?: ForEachOptions | EachDoneCallback, callback?: EachDoneCallback): void | Promise<boolean> {
     if (typeof fn !== 'function') throw new Error('Missing each function');
-    if (typeof options === 'function') {
-      callback = options as EachDoneCallback;
-      options = {};
-    }
+    callback = typeof options === 'function' ? options : callback;
+    options = typeof options === 'function' ? {} : ((options || {}) as ForEachOptions);
 
     if (typeof callback === 'function') {
       if (this.done) return callback(null, true);
-      options = options || {};
       const processorOptions: ProcessorOptions<T> = {
         each: fn,
         callbacks: options.callbacks || false,
@@ -113,7 +110,6 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         setTimeout(() => {
           if (!this.destroyed) this.processors.remove(processor);
           processor = null;
-          options = null;
           const done = !this.stack.length && this.pending === 0;
           if ((err || done) && !this.done) this.end(err);
           callback(err, this.done || done);
@@ -125,7 +121,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     }
 
     return new Promise((resolve, reject) =>
-      this.forEach(fn, options as ForEachOptions, (err?: Error, done?: boolean) => {
+      this.forEach(fn, options, (err?: Error, done?: boolean) => {
         err ? reject(err) : resolve(done);
       })
     );
