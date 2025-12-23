@@ -3,6 +3,7 @@ import nextCallback from 'iterator-next-callback';
 import { createProcessor } from 'maximize-iterator';
 import Pinkie from 'pinkie-promise';
 import LinkedList from './LinkedList.ts';
+import { defer } from './lib/defer.ts';
 
 import type { EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackOptions, ValueCallback } from './types.ts';
 
@@ -107,13 +108,13 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
         // Defer completion decision AND processor removal to give deferred work a chance to push
         // Processor must stay in list so _pump() can signal it to process new items
-        setTimeout(() => {
+        defer(() => {
           if (!this.destroyed) this.processors.remove(processor);
           processor = null;
           const done = !this.stack.length && this.pending === 0;
           if ((err || done) && !this.done) this.end(err);
           callback(err, this.done || done);
-        }, 0);
+        });
       });
       this.processors.push(processor);
       this._pump();
@@ -161,13 +162,13 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     if (this.endScheduled || this.done) return;
     this.endScheduled = true;
 
-    setTimeout(() => {
+    defer(() => {
       this.endScheduled = false;
       // Re-check ALL conditions after deferral
       if (this.stack.length === 0 && this.processing.length === 0 && this.pending === 0 && !this.done) {
         this.end();
       }
-    }, 0);
+    });
   }
 
   private _processOrQueue(callback: ProcessCallback<T>): void {
@@ -210,7 +211,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       // queue again
       else if (!result) {
         this.queued.push(callback);
-        setTimeout(() => this._pump(), 0); // Deferred to start new call stack
+        defer(() => this._pump()); // Deferred to start new call stack
       }
       // return the result
       else callback(null, result);
