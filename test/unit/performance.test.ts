@@ -1,5 +1,6 @@
 import assert from 'assert';
 import Pinkie from 'pinkie-promise';
+import { defer } from '../../src/lib/defer.ts';
 import createIterator from '../lib/createIterator.cjs';
 
 const MAX_STACK = 100000;
@@ -230,12 +231,12 @@ describe('performance', () => {
         // When we process the last item (3), schedule deferred work to push more
         if (value === 3 && !deferredPushed) {
           deferredPushed = true;
-          setTimeout(() => {
+          defer(() => {
             // Push more work - this keeps the iterator alive
             // Note: stack is LIFO, so push 5 first to get order 4, 5
             iterator.push((_iter, cb) => cb(null, { done: false, value: 5 }));
             iterator.push((_iter, cb) => cb(null, { done: false, value: 4 }));
-          }, 0);
+          });
         }
         callback();
       },
