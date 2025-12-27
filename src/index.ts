@@ -121,11 +121,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       return;
     }
 
-    return new Promise((resolve, reject) =>
-      this.forEach(fn, options, (err?: Error, done?: boolean) => {
-        err ? reject(err) : resolve(done);
-      })
-    );
+    return new Promise((resolve, reject) => this.forEach(fn, options, (err?: Error, done?: boolean) => (err ? reject(err) : resolve(done))));
   }
 
   end(err?: Error) {
