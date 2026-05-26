@@ -34,7 +34,7 @@ describe('asyncAwait', () => {
       const results: number[] = [];
 
       await iterator.forEach(
-        async (value) => {
+        async (value: number) => {
           results.push(value);
         },
         { concurrency: Infinity }

@@ -1,7 +1,7 @@
 class Node<T> {
   value: T;
-  prev: Node<T>;
-  next: Node<T>;
+  prev: Node<T> | null;
+  next: Node<T> | null;
 
   constructor(value: T) {
     this.value = value;
@@ -11,8 +11,8 @@ class Node<T> {
 }
 
 export default class LinkedList<T> {
-  private head: Node<T>;
-  private tail: Node<T>;
+  private head: Node<T> | null;
+  private tail: Node<T> | null;
   length: number;
 
   constructor() {
@@ -21,7 +21,7 @@ export default class LinkedList<T> {
     this.length = 0;
   }
 
-  last(): T {
+  last(): T | undefined {
     return this.tail ? this.tail.value : undefined;
   }
 
@@ -32,32 +32,32 @@ export default class LinkedList<T> {
       this.tail = newNode;
     } else {
       newNode.prev = this.tail;
-      this.tail.next = newNode;
+      (this.tail as Node<T>).next = newNode;
       this.tail = newNode;
     }
     this.length++;
     return this;
   }
 
-  pop(): T {
+  pop(): T | undefined {
     if (!this.head) return undefined;
-    const poppedNode = this.tail;
+    const poppedNode = this.tail as Node<T>;
     if (this.length === 1) {
       this.head = null;
       this.tail = null;
     } else {
       this.tail = poppedNode.prev;
-      this.tail.next = null;
+      (this.tail as Node<T>).next = null;
       poppedNode.prev = null;
     }
     this.length--;
     return poppedNode.value;
   }
 
-  remove(value: T): T {
+  remove(value: T): T | undefined {
     if (!this.head) return undefined;
 
-    let currentNode = this.head;
+    let currentNode: Node<T> | null = this.head;
     while (currentNode) {
       if (currentNode.value === value) {
         if (currentNode === this.head) {
@@ -66,10 +66,10 @@ export default class LinkedList<T> {
           else this.tail = null;
         } else if (currentNode === this.tail) {
           this.tail = currentNode.prev;
-          this.tail.next = null;
+          (this.tail as Node<T>).next = null;
         } else {
-          currentNode.prev.next = currentNode.next;
-          currentNode.next.prev = currentNode.prev;
+          (currentNode.prev as Node<T>).next = currentNode.next;
+          (currentNode.next as Node<T>).prev = currentNode.prev;
         }
         this.length--;
         return currentNode.value;
