@@ -6,12 +6,12 @@ describe('exports .ts', () => {
     const results: number[] = [];
     const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback();
       },
       { callbacks: true, concurrency: 1 },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
         done();

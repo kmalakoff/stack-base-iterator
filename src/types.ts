@@ -3,4 +3,4 @@ export interface StackOptions {
   error?: (err: NodeJS.ErrnoException) => boolean | void;
 }
 
-export type ValueCallback<T, TReturn = unknown> = (error?: Error, value?: IteratorResult<T, TReturn> | undefined) => void;
+export type ValueCallback<T, TReturn = unknown> = (error?: Error | null, value?: IteratorResult<T, TReturn> | undefined) => void;
