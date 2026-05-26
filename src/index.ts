@@ -24,7 +24,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   protected processing: LinkedList<ProcessCallback<T>>;
 
   protected options: StackOptions;
-  protected destroyed: boolean;
+  protected destroyed!: boolean;
   private flushing: boolean;
   private pending: number;
   private endScheduled: boolean;
@@ -63,8 +63,8 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
   next(): Promise<IteratorResult<T, TReturn>> {
     return new Pinkie((resolve, reject) => {
-      this._processOrQueue((err, result: IteratorResult<T, TReturn>) => {
-        err ? reject(err) : resolve(result);
+      this._processOrQueue((err, result) => {
+        err ? reject(err) : resolve(result as IteratorResult<T, TReturn>);
       });
     });
   }
@@ -82,7 +82,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     options = typeof options === 'function' ? {} : ((options || {}) as ForEachOptions);
 
     if (typeof callback === 'function') {
-      if (this.done) return callback(null, true);
+      if (this.done) return callback(undefined, true);
       const processorOptions: ProcessorOptions<T> = {
         each: fn,
         callbacks: options.callbacks || false,
@@ -101,7 +101,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       };
 
       let callbackFired = false;
-      let processor = createProcessor<T>(nextCallback<T, TReturn, TNext>(this), processorOptions, (err) => {
+      const processor = createProcessor<T>(nextCallback<T, TReturn, TNext>(this), processorOptions, (err) => {
         // Guard against double callback (can happen if end() is called while microtask is pending)
         if (callbackFired) return;
         callbackFired = true;
@@ -110,7 +110,6 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         // Processor must stay in list so _pump() can signal it to process new items
         defer(() => {
           if (!this.destroyed) this.processors.remove(processor);
-          processor = null;
           const done = !this.stack.length && this.pending === 0;
           if ((err || done) && !this.done) this.end(err);
           callback(err, this.done || done);
@@ -121,15 +120,15 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       return;
     }
 
-    return new Promise((resolve, reject) => this.forEach(fn, options, (err?: Error, done?: boolean) => (err ? reject(err) : resolve(done))));
+    return new Promise((resolve, reject) => this.forEach(fn, options, (err?: Error, done?: boolean) => (err ? reject(err) : resolve(done as boolean))));
   }
 
   end(err?: Error) {
     if (this.done) return;
     this.done = true;
-    while (this.processors.length > 0) this.processors.pop()(err || true);
-    while (this.processing.length > 0) err ? this.processing.pop()(err) : this.processing.pop()(null, { done: true, value: null });
-    while (this.queued.length > 0) err ? this.queued.pop()(err) : this.queued.pop()(null, { done: true, value: null });
+    while (this.processors.length > 0) this.processors.pop()?.(err || true);
+    while (this.processing.length > 0) err ? this.processing.pop()?.(err) : this.processing.pop()?.(undefined, { done: true, value: null });
+    while (this.queued.length > 0) err ? this.queued.pop()?.(err) : this.queued.pop()?.(undefined, { done: true, value: null });
     while (this.stack.length > 0) this.stack.pop();
   }
   destroy(err?: Error) {
@@ -144,10 +143,10 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     if (this.flushing) return;
     this.flushing = true;
 
-    if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
+    if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()?.(false); // try to queue more
     while (this.stack.length > 0 && this.queued.length > 0) {
-      this._processOrQueue(this.queued.pop());
-      if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()(false); // try to queue more
+      this._processOrQueue(this.queued.pop() as ProcessCallback<T>);
+      if (!this.done && this.processors.length > 0 && this.stack.length > 0 && this.stack.length > this.queued.length) this.processors.last()?.(false); // try to queue more
     }
 
     this.flushing = false;
@@ -168,7 +167,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
   }
 
   private _processOrQueue(callback: ProcessCallback<T>): void {
-    if (this.done) return callback(null, { done: true, value: null });
+    if (this.done) return callback(undefined, { done: true, value: null });
 
     // nothing to process so queue
     if (this.stack.length === 0) {
@@ -181,7 +180,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     this.processing.push(callback);
     this.pending++;
     let callbackFired = false;
-    next(this, (err?: Error, result?: IteratorResult<T, TReturn> | undefined): void => {
+    next?.(this, (err, result): void => {
       // Guard against callback being called multiple times (buggy iterators)
       if (callbackFired) {
         console.warn('stack-base-iterator: callback called multiple times - this indicates a bug in the iterator implementation');
@@ -194,13 +193,13 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
 
       // done
       if (this.done)
-        return callback(null, {
+        return callback(undefined, {
           done: true,
           value: null,
         });
 
       // skip error
-      if (err && compat.defaultValue(this.options.error(err), true)) err = null;
+      if (err && compat.defaultValue(this.options.error?.(err), true)) err = undefined;
 
       // handle callback
       if (err) callback(err);
@@ -210,7 +209,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
         defer(() => this._pump()); // Deferred to start new call stack
       }
       // return the result
-      else callback(null, result);
+      else callback(undefined, result);
 
       // Only schedule end check when we might actually be done
       // This prevents premature end checks from earlier items
