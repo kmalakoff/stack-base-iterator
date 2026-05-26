@@ -29,12 +29,12 @@ describe('performance', () => {
     const results: number[] = [];
     const iterator = createIterator(range(MAX_STACK));
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback(); // Sync callback - trampoline should prevent overflow
       },
       { callbacks: true, concurrency: 1 },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         assert.equal(results.length, MAX_STACK);
         // Verify order is preserved
@@ -49,12 +49,12 @@ describe('performance', () => {
     const results: number[] = [];
     const iterator = createIterator(range(MAX_STACK));
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback(); // Sync callback
       },
       { callbacks: true, concurrency: 10 },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         assert.equal(results.length, MAX_STACK);
         // With concurrency > 1, order may vary but all items should be present
@@ -71,12 +71,12 @@ describe('performance', () => {
     const results: number[] = [];
     const iterator = createIterator(range(MAX_STACK));
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback(); // Sync callback
       },
       { callbacks: true, concurrency: Infinity },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         assert.equal(results.length, MAX_STACK);
         done();
@@ -88,12 +88,12 @@ describe('performance', () => {
     const results: number[] = [];
     const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback(); // Sync callback - trampoline should not affect order
       },
       { callbacks: true, concurrency: 1 },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         // Order must be preserved exactly
         assert.deepEqual(results, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -122,12 +122,12 @@ describe('performance', () => {
     const results: number[] = [];
     const iterator = createIterator(range(count));
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         callback(); // Sync callback
       },
       { callbacks: true, concurrency: 1 },
-      (err?: Error) => {
+      (err?: Error | null) => {
         if (err) return done(err);
         // Order must be preserved exactly even across trampoline yields
         assert.deepEqual(results, range(count));
@@ -148,7 +148,7 @@ describe('performance', () => {
         // Promise mode - sync return, no callback
       },
       { concurrency: 1 },
-      (err?: Error, isDone?: boolean) => {
+      (err?: Error | null, isDone?: boolean) => {
         if (err) return done(err);
         assert.deepEqual(results, [1, 2, 3, 4, 5]);
         assert.equal(isDone, true);
@@ -186,7 +186,7 @@ describe('performance', () => {
         results.push(value);
       },
       { concurrency: 1 },
-      (err?: Error, isDone?: boolean) => {
+      (err?: Error | null, isDone?: boolean) => {
         if (err) return done(err);
         assert.deepEqual(results, [1, 2, 3]);
         assert.equal(isDone, true);
@@ -205,7 +205,7 @@ describe('performance', () => {
     let deferredPushed = false;
 
     iterator.forEach(
-      (value: number, callback: (err?: Error) => void) => {
+      (value: number, callback: (err?: Error | null) => void) => {
         results.push(value);
         // When we process the last item (3), schedule deferred work to push more
         if (value === 3 && !deferredPushed) {
@@ -220,7 +220,7 @@ describe('performance', () => {
         callback();
       },
       { callbacks: true, concurrency: 1 },
-      (err?: Error, isDone?: boolean) => {
+      (err?: Error | null, isDone?: boolean) => {
         if (err) return done(err);
         // First forEach processes items 1, 2, 3
         assert.deepEqual(results, [1, 2, 3]);
@@ -230,7 +230,7 @@ describe('performance', () => {
 
         // Second forEach processes the remaining items
         iterator.forEach(
-          (value: number, callback: (err?: Error) => void) => {
+          (value: number, callback: (err?: Error | null) => void) => {
             results.push(value);
             callback();
           },

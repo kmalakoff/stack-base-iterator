@@ -120,10 +120,10 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
       return;
     }
 
-    return new Promise((resolve, reject) => this.forEach(fn, options, (err?: Error, done?: boolean) => (err ? reject(err) : resolve(done as boolean))));
+    return new Promise((resolve, reject) => this.forEach(fn, options, (err?: Error | null, done?: boolean) => (err ? reject(err) : resolve(done as boolean))));
   }
 
-  end(err?: Error) {
+  end(err?: Error | null) {
     if (this.done) return;
     this.done = true;
     while (this.processors.length > 0) this.processors.pop()?.(err || true);
@@ -131,7 +131,7 @@ export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> im
     while (this.queued.length > 0) err ? this.queued.pop()?.(err) : this.queued.pop()?.(undefined, { done: true, value: null });
     while (this.stack.length > 0) this.stack.pop();
   }
-  destroy(err?: Error) {
+  destroy(err?: Error | null) {
     if (this.destroyed) throw new Error('Already destroyed');
     this.destroyed = true;
     this.end(err);
