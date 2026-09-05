@@ -1,1 +1,1 @@
-ignores: ["node-version-use", "ts-dev-stack", "stack-base-iterator"]
+ignores: ["stack-base-iterator", "node-version-use", "ts-dev-stack"]
