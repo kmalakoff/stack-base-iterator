@@ -12,7 +12,7 @@ function range(n: number): number[] {
   return arr;
 }
 
-describe('performance', () => {
+describe('stack safety and liveness', () => {
   (() => {
     // patch and restore promise
     if (typeof global === 'undefined') return;
@@ -24,6 +24,12 @@ describe('performance', () => {
       global.Promise = globalPromise;
     });
   })();
+
+  it('destroy iterator', () => {
+    const iterator = createIterator([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    iterator.destroy();
+    assert.equal(iterator.isDone(), true);
+  });
 
   it('no stack overflow with sync callbacks (concurrency 1)', (done) => {
     const results: number[] = [];
