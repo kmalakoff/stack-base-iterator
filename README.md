@@ -1,99 +1,46 @@
-## stack-base-iterator
+# stack-base-iterator
 
-Base iterator for values retrieved using a stack of async functions returning values.
+Base class for iterators whose values come from a stack of asynchronous functions.
 
-// asyncIterator
-
-```js
-var assert = require('assert');
-var BaseIterator = require('stack-base-iterator'));
-
-// extend BaseIterator (see tests, tar-iterator, zip-iterator for examples)
-
-(async function() {
-  var iterator = new YourIterator();
-
-  try {
-    for await (const value of iterator) {
-      // do something
-    }
-  } catch (err) {
-    }
-
-  iterator.destroy();
-  iterator = null;
-})();
+```bash
+npm install stack-base-iterator
 ```
 
-// Async / Await
+Subclass `StackBaseIterator` and push functions that call their value callback with an `IteratorResult`. The base class provides async iteration, `next()`, `forEach()`, and lifecycle methods.
 
 ```js
-var assert = require('assert');
-var BaseIterator = require('stack-base-iterator'));
+var StackBaseIterator = require('stack-base-iterator').default;
 
-// extend BaseIterator (see tests, tar-iterator, zip-iterator for examples)
-
-var iterator = new YourIterator();
-
-// one by one
-(async function() {
-  let iterator = new YourIterator();
-
-  try {
-    let value = await iterator.next();
-    while (value) {
-      // do something
-      value = await iterator.next();
-    }
-  } catch (err) {
-    }
-
-  iterator.destroy();
-  iterator = null;
-})();
-
-// infinite concurrency
-(async function() {
-  let iterator = new YourIterator();
-
-  try {
-    await iterator.forEach(
-      async function (value) {
-        // do something
-      },
-      { concurrency: Infinity }
-    );
-  } catch (err) {
-    }
-
-  iterator.destroy();
-  iterator = null;
-})();
-```
-
-// Callbacks
-
-```js
-var assert = require('assert');
-var BaseIterator = require('stack-base-iterator'));
-
-// extend BaseIterator (see tests, tar-iterator, zip-iterator for examples)
-
-var iterator = new YourIterator();
-
-// one by one
-var links = [];
-iterator.forEach(
-  function (value, callback) {
-    // do something
-    callback();
-  },
-  { callbacks: true, concurrency: 1 },
-  function (err) {
-  
-    iterator.destroy();
-    iterator = null;
+class YourIterator extends StackBaseIterator {
+  constructor(values) {
+    super();
+    values.forEach(function (value) {
+      this.push(function (_iterator, callback) {
+        callback(null, { done: false, value: value });
+      });
+    }, this);
   }
-);
-
+}
 ```
+
+The subclass above is illustrative. A real subclass would push functions that perform its asynchronous work.
+
+## Consume values
+
+Use async iteration when the runtime supports it:
+
+```js
+var iterator = new YourIterator([1, 2, 3]);
+
+(async function () {
+  try {
+    for await (var value of iterator) {
+      console.log(value);
+    }
+  } finally {
+    iterator.destroy();
+  }
+})();
+```
+
+For callback processing, call `forEach(fn, { callbacks: true, concurrency: 1 }, done)`. Without `callbacks: true`, `fn` may return a value or promise. Set `concurrency` to control parallel processing. Call `next()` to retrieve one `IteratorResult` at a time, and `destroy()` to stop the iterator.
