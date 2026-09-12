@@ -2,17 +2,17 @@ import compat from 'async-compat';
 import nextCallback from 'iterator-next-callback';
 import { createProcessor } from 'maximize-iterator';
 import Pinkie from 'pinkie-promise';
-import LinkedList from './LinkedList.js';
+import LinkedList from './LinkedList.ts';
 
-import type { EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackOptions, ValueCallback } from './types.js';
+import type { EachDoneCallback, EachFunction, ForEachOptions, ProcessCallback, Processor, ProcessorOptions, StackOptions, ValueCallback } from './types.ts';
 
 export type StackFunction<T, TReturn = unknown, TNext = unknown> = (iterator: StackBaseIterator<T, TReturn, TNext>, callback: ValueCallback<T>) => void;
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Legacy
 const Symbol: SymbolConstructor = typeof global.Symbol === 'undefined' ? ({ asyncIterator: '@@' } as unknown as SymbolConstructor) : global.Symbol;
 
-export { default as LinkedList } from './LinkedList.js';
-export type * from './types.js';
+export { default as LinkedList } from './LinkedList.ts';
+export type * from './types.ts';
 export default class StackBaseIterator<T, TReturn = unknown, TNext = unknown> implements AsyncIterableIterator<T, TReturn, TNext> {
   protected done: boolean;
   protected stack: StackFunction<T, TReturn, TNext>[];
